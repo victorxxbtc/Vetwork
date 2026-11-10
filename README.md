@@ -67,8 +67,10 @@ uv sync
 uv run pytest            # → 19 passed (Python: bidding, leakage guard, reviewer, ledger, end to end, web)
 uv run swarm demo        # → open http://127.0.0.1:8000 and watch the swarm review Marketing DAO proposal #1005
 uv run swarm eval        # → re-runs the held-out evaluation from the cached mainnet data (~1 min) and prints the table
-cd contract && cargo test   # → 12 passed (escrow, sub-account agents, sealed bids, pro-rata payouts, memo record)
+scripts/test.sh          # → everything: 19 Python + 12 contract unit + wasm build + 2 near-workspaces sandbox tests
 ```
+
+Contract only: `cd contract && cargo test --lib` (12 unit tests), `cargo near build non-reproducible-wasm` (→ `target/near/assay_swarm.wasm`, 224 KB), `cargo test --test sandbox` (2 end-to-end tests on a local neard 2.14 sandbox: real wasm, real accounts and balances; the full job lifecycle with escrow, sub-account creation, late-commit and bad-salt rejection, runner-up reassignment, payout into the agent's balance and refund to the poster; and a second backer withdrawing pro-rata in real NEAR). near-workspaces downloads neard on first run; set `NEAR_SANDBOX_BIN_PATH` to use a local binary.
 
 Do X → see Y:
 
@@ -89,7 +91,7 @@ Refresh the cached data from mainnet (read-only RPC): `uv run swarm fetch`. Prin
 - "Treasury impact" uses approved outflow as a proxy; it does not read historical DAO balances (that needs an archival node).
 - Grant DAOs on chain are approval-heavy; only 3,235 rejections across 5 DAOs, and the News DAO is a content-bounty DAO rather than a classic grant DAO.
 - The reviewer is deterministic. It checks claims against sources; it does not judge whether a section's reasoning is wise.
-- The contract has unit tests (12 passed) but no sandbox integration test, has not been audited, has not been built to wasm here (offline network) and is not deployed. Demo-mode payments happen in an in-memory ledger that mirrors it.
+- The contract has 12 unit tests and 2 sandbox end-to-end tests, builds to wasm, but has not been audited and is not deployed to testnet. Built with rustc 1.99, the wasm loads on neard 2.14 (current protocol) but not on old neard 2.6. Demo-mode payments happen in an in-memory ledger that mirrors it.
 - NEAR AI models used are listed as TEE-verifiable, but Assay makes no privacy claim: proposals are public.
 
 ## 6. On-chain record
@@ -103,7 +105,8 @@ Refresh the cached data from mainnet (read-only RPC): `uv run swarm fetch`. Prin
 
 ## NEAR tech used
 
-- **Rust near-sdk 5** contract ([contract/src/lib.rs](contract/src/lib.rs)): job escrow, agent registry with **sub-accounts** (`Promise::create_account`), backer shares, commit–reveal bids, operator-charged inference, reviewer-gated payouts and runner-up reassignment, memo hash per `<dao>#<proposal>`.
+- **Rust near-sdk 5.30** contract ([contract/src/lib.rs](contract/src/lib.rs)), built with **cargo-near**: job escrow, agent registry with **sub-accounts** (`Promise::create_account`), backer shares (exact 256-bit share math), commit–reveal bids, operator-charged inference, reviewer-gated payouts and runner-up reassignment, memo hash per `<dao>#<proposal>`, NEP-297 style `EVENT_JSON` logs.
+- **near-workspaces 0.24** sandbox tests ([contract/tests/sandbox.rs](contract/tests/sandbox.rs)) drive the compiled wasm on a local neard: sub-accounts appear on chain, NEAR moves between real accounts.
 - **Sputnik DAO v2** read from mainnet RPC (`get_last_proposal_id`, `get_proposals`, `get_policy`); the job is designed to be posted by a DAO through a FunctionCall proposal.
 - **NEAR AI Cloud** (OpenAI-compatible) for agent inference, priced from its live model list.
 - **HOT near-connect 0.12** wallet, loaded as an ES module with no JS build step.

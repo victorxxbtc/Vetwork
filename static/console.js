@@ -48,21 +48,32 @@
     .attr("stroke", (d) => (d.kind === "job" ? "none" : "#D0D6E0"))
     .attr("stroke-width", 1.2);
   node.append("text").text((d) => d.label).attr("x", 0).attr("y", (d) => (d.kind === "job" ? 30 : 22))
-    .attr("text-anchor", "middle").attr("fill", "#8A8F98").style("font", "11px 'IBM Plex Mono', monospace");
-  sim.on("tick", () => {
-    nodes.forEach((d) => { d.x = Math.max(30, Math.min(W - 30, d.x)); d.y = Math.max(20, Math.min(H - 30, d.y)); });
+    .attr("text-anchor", "middle").attr("fill", "#8A8F98")
+    .attr("paint-order", "stroke").attr("stroke", "#0A0B0D").attr("stroke-width", 4).attr("stroke-linejoin", "round").style("font", "11px 'IBM Plex Mono', monospace");
+  function render() {
+    nodes.forEach((d) => { const m = Math.max(30, d.label.length * 3.4 + 6); d.x = Math.max(m, Math.min(W - m, d.x)); d.y = Math.max(20, Math.min(H - 30, d.y)); });
     link.attr("x1", (d) => d.source.x).attr("y1", (d) => d.source.y).attr("x2", (d) => d.target.x).attr("y2", (d) => d.target.y);
     node.attr("transform", (d) => `translate(${d.x},${d.y})`);
-  });
-  function refit() {
+  }
+  sim.on("tick", render);
+  function refit(settle) {
     size();
     // forceX/forceY cache their targets: re-set the accessors so they read the new width
     sim.force("x").x(sim.force("x").x());
     sim.force("y").y(sim.force("y").y());
-    sim.alpha(0.5).restart();
+    sim.force("collide").radius(W < 500 ? 34 : 26);
+    if (settle) {
+      // lay out synchronously so the first paint is already settled, even in a throttled tab
+      sim.stop().alpha(1);
+      sim.tick(220);
+      render();
+      sim.alpha(0.05).restart();
+    } else {
+      sim.alpha(0.5).restart();
+    }
   }
-  window.addEventListener("resize", refit);
-  requestAnimationFrame(refit);
+  window.addEventListener("resize", () => refit(false));
+  refit(true);
 
   function pay(from, to, big) {
     const a = byId[from], b = byId[to];
