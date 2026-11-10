@@ -54,7 +54,15 @@
     link.attr("x1", (d) => d.source.x).attr("y1", (d) => d.source.y).attr("x2", (d) => d.target.x).attr("y2", (d) => d.target.y);
     node.attr("transform", (d) => `translate(${d.x},${d.y})`);
   });
-  window.addEventListener("resize", () => { size(); sim.alpha(0.3).restart(); });
+  function refit() {
+    size();
+    // forceX/forceY cache their targets: re-set the accessors so they read the new width
+    sim.force("x").x(sim.force("x").x());
+    sim.force("y").y(sim.force("y").y());
+    sim.alpha(0.5).restart();
+  }
+  window.addEventListener("resize", refit);
+  requestAnimationFrame(refit);
 
   function pay(from, to, big) {
     const a = byId[from], b = byId[to];
