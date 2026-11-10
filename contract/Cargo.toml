@@ -1,0 +1,24 @@
+[package]
+name = "assay-swarm"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Job escrow, funded agent registry (sub-accounts), sealed bids, reviewer-gated payouts and memo hashes for DAO grant review."
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+near-sdk = "5.30"
+
+[dev-dependencies]
+near-sdk = { version = "5.30", features = ["unit-testing"] }
+
+[profile.release]
+codegen-units = 1
+opt-level = "z"
+lto = true
+debug = false
+panic = "abort"
+overflow-checks = true

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% set active = 'live' %}
+{% block title %}Assay · Live swarm · {{ dao.split('.')[0] }} #{{ p.id }}{% endblock %}
+{% block main %}
+<main class="console">
+  <section class="head">
+    <div class="lbl">JOB {{ '%06d' % job_id }} · LIVE SWARM · {{ dao }}</div>
+    <h1>Grant review: Proposal #{{ p.id }} <span>· <span id="nagents">{{ agents|length }}</span> agents bidding</span></h1>
+    <p class="lead"><b>{{ title }}</b> {{ amount }} to {{ p.receiver_id }}, filed by {{ p.proposer }}. The DAO's real vote is hidden from the agents and shown only on the memo.</p>
+    <form class="pick" action="/" method="get">
+      <label for="dao">DAO</label>
+      <select id="dao" name="dao">{% for d in daos %}<option {% if d==dao %}selected{% endif %}>{{ d }}</option>{% endfor %}</select>
+      <label for="pid">Proposal</label>
+      <input id="pid" name="id" type="number" min="0" value="{{ p.id }}" inputmode="numeric">
+      <button class="btn" type="submit">Review</button>
+    </form>
+  </section>
+  <section class="grid">
+    <div class="panel graph-panel">
+      <div class="panel-h"><span class="lbl">TOPOLOGY</span><span class="legend"><i class="dot blue"></i>payment <i class="dot ring"></i>agent <i class="dot dash"></i>failed review</span></div>
+      <svg id="graph" role="img" aria-label="Force graph of the DAO, the job, the agents and NEAR AI, with payments moving along the edges"></svg>
+      <div id="status" class="status" role="status" aria-live="polite">Waiting for the swarm to start…</div>
+    </div>
+    <div class="panel log-panel">
+      <div class="panel-h"><span class="lbl">BID LOG</span><span id="phase" class="lbl">COMMIT</span></div>
+      <ol id="log" class="log" aria-live="off"><li class="muted">Connecting to the event stream…</li></ol>
+    </div>
+  </section>
+  <section class="panel sections">
+    <div class="panel-h"><span class="lbl">SECTIONS</span><span class="lbl">bounty split five ways · cap per section</span></div>
+    <ul class="sec-list">
+      {% for s in sections %}<li id="sec-{{ s }}"><span class="sname">{{ titles[s] }}</span><span class="who">open</span><span class="price">—</span></li>{% endfor %}
+    </ul>
+    <div class="memo-cta" id="memo-cta" hidden>
+      <span id="verdict" class="stamp"></span>
+      <a class="btn" href="/memo/{{ dao }}/{{ p.id }}">Read the memo</a>
+      <code id="hash" class="hash"></code>
+    </div>
+  </section>
+  <section class="panel recent">
+    <div class="panel-h"><span class="lbl">OTHER DECIDED PROPOSALS IN THIS DAO</span></div>
+    <ul>{% for r in recent %}<li><a href="/?dao={{ dao }}&id={{ r.id }}">#{{ r.id }}</a> <span>{{ r.title }}</span></li>{% endfor %}</ul>
+  </section>
+</main>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>window.ASSAY = {{ {"dao": dao, "id": p.id, "agents": agents}|tojson }};</script>
+<script src="/static/console.js"></script>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% set active = 'agents' %}
+{% block title %}Assay · Agents{% endblock %}
+{% block main %}
+<main class="console">
+  <section class="head">
+    <div class="lbl">AGENT REGISTRY · {{ rows|length }} AGENTS · SUB-ACCOUNTS OF {{ swarm_account }}</div>
+    <h1>Anyone can add an agent <span>· fund it, give it a prompt, a knowledge base and tools</span></h1>
+    <p class="lead"><b>The deposit pays for the agent's inference; job revenue tops it up.</b> Backers own shares of the balance and withdraw them with earnings.</p>
+  </section>
+  {% if error %}<div class="panel notice err" role="alert">Could not add the agent: {{ error }}</div>{% endif %}
+  {% if added %}<div class="panel notice ok" role="status">Added {{ added }}.{{ swarm_account }}. It will bid on the next job you open.</div>{% endif %}
+  <section class="grid">
+    <div class="panel">
+      <div class="panel-h"><span class="lbl">SWARM</span></div>
+      <div class="table-wrap"><table class="mono">
+        <thead><tr><th>Agent</th><th>Section</th><th>KB</th><th>Bid</th><th>Balance</th><th>Backers</th></tr></thead>
+        <tbody>
+        {% for r in rows %}<tr><td>{{ r.account }}</td><td>{{ r.spec.section }}</td><td>{{ r.spec.knowledge_base }}</td><td>~{{ '%.2f' % r.spec.base_price_near }}</td><td>{{ r.balance|nears }}</td><td>{{ r.backers }}</td></tr>{% endfor %}
+        </tbody>
+      </table></div>
+    </div>
+    <form class="panel add" method="post" action="/agents">
+      <div class="panel-h"><span class="lbl">ADD AN AGENT</span></div>
+      <label>Name <small>becomes name.{{ swarm_account }}</small><input name="name" required pattern="[a-z0-9][a-z0-9-]{0,30}[a-z0-9]" placeholder="grant-historian"></label>
+      <label>Section<select name="section">{% for s in sections %}<option value="{{ s }}">{{ titles[s] }}</option>{% endfor %}</select></label>
+      <label>Prompt<textarea name="prompt" required maxlength="2000" rows="4" placeholder="What this agent looks for and how it reports it."></textarea></label>
+      <label>Knowledge base<select name="knowledge_base">{% for k, v in kbs.items() %}<option value="{{ k }}">{{ k }}: {{ v }}</option>{% endfor %}</select></label>
+      <fieldset><legend>Tools</legend>{% for k, v in tools.items() %}<label class="chk"><input type="checkbox" name="tools" value="{{ k }}"> <code>{{ k }}</code> {{ v }}</label>{% endfor %}</fieldset>
+      <div class="row2">
+        <label>Bid price (NEAR)<input name="price" type="number" step="0.01" min="0.01" max="10" value="0.20"></label>
+        <label>Deposit (NEAR)<input name="deposit" type="number" step="0.1" min="1" value="1"></label>
+      </div>
+      <label>Backer account<input name="backer" value="you.testnet"></label>
+      <button class="btn" type="submit">Add to demo swarm</button>
+      <button class="btn ghost" type="button" id="onchain-add" {% if not contract_id %}disabled title="Set SWARM_CONTRACT_ID to register on chain"{% endif %}>Register on chain with wallet</button>
+      <p class="muted small">Demo adds the agent to this server's in-memory swarm. With a deployed contract, the wallet button calls <code>register_agent</code>, which creates the sub-account.</p>
+    </form>
+  </section>
+</main>
+{% endblock %}

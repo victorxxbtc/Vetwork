@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% set active = 'live' %}
+{% block body_class %}light{% endblock %}
+{% block title %}Assay · Memo · {{ m.dao.split('.')[0] }} #{{ m.proposal_id }}{% endblock %}
+{% block main %}
+<main class="memo-wrap">
+  <div class="lbl">REVIEW MEMO · {{ m.sources|length }} SOURCES · {{ m.claims_total }} CLAIMS · {{ m.claims_flagged }} FLAGGED</div>
+  <article class="doc">
+    <header>
+      <p class="meta">{{ m.dao }} · proposal #{{ m.proposal_id }} · {{ m.amount }} to {{ m.receiver }}</p>
+      <h1>{{ m.title }}</h1>
+      <div class="verdict-row">
+        <span class="stamp big">{{ m.verdict }} · {{ m.score }}/100</span>
+        <span class="actual">The DAO's actual vote: <b>{{ outcome }}</b></span>
+      </div>
+    </header>
+    <figure class="bench" aria-label="Section scores">
+      <figcaption class="lbl">SECTION SCORES</figcaption>
+      <div class="bars">
+        {% for s in m.sections %}
+        <div class="bar {% if not s.accepted %}none{% endif %}"><span class="v">{{ s.score if s.score is not none else '—' }}</span><i style="height: {{ s.score or 2 }}%"></i><span class="k">{{ s.section }}</span></div>
+        {% endfor %}
+        <div class="bar us"><span class="v">{{ m.score }}</span><i style="height: {{ m.score }}%"></i><span class="k">memo</span></div>
+      </div>
+    </figure>
+    {% for s in m.sections %}
+    <section class="sec">
+      <h2>{{ s.title }} <small>weight {{ (s.weight*100)|int }}%</small></h2>
+      <p class="by">{% if s.agent %}By <b>{{ s.agent }}</b> for {{ s.price_yocto|nears }} NEAR · {{ s.model }}{% else %}Not covered{% endif %}</p>
+      <p>{{ s.summary }}</p>
+      {% if s.claims %}<ol class="claims">
+        {% for c in s.claims %}<li class="{{ c.status }}"><span class="tag">{{ 'checked' if c.status=='verified' else 'flagged' }}</span> {{ c.text }}
+          {% if c.sources %}<span class="cites">{% for sid in c.sources[:8] %}<span title="{{ sid }}">#{{ sid.split('#')[1] }}</span>{% endfor %}{% if c.sources|length > 8 %} +{{ c.sources|length - 8 }}{% endif %}</span>{% endif %}
+        </li>{% endfor %}
+      </ol>{% endif %}
+    </section>
+    {% endfor %}
+    {% if m.rejected_findings %}
+    <section class="sec rejected">
+      <h2>Work the reviewer sent back</h2>
+      {% for f in m.rejected_findings %}
+      <p class="by"><b>{{ f.agent }}</b> on {{ f.section }}: not paid, section passed to the runner-up.</p>
+      <ol class="claims">{% for c in f.claims if c.status=='flagged' %}<li class="flagged"><span class="tag">flagged</span> <s>{{ c.text }}</s> <em>{{ c.reason }}</em></li>{% endfor %}</ol>
+      {% endfor %}
+    </section>
+    {% endif %}
+    <footer class="foot">
+      <dl>
+        <dt>Memo hash (sha256)</dt><dd><code>{{ m.memo_hash }}</code></dd>
+        <dt>Cost</dt><dd>{{ m.cost.bids_yocto|nears }} NEAR in winning bids · ${{ '%.4f' % m.cost.inference_usd }} inference{% if backend=='scripted' %} (estimated; demo agents make no LLM call){% endif %}</dd>
+        <dt>Recorded</dt><dd>{% if contract_id %}on {{ contract_id }} via <code>submit_review</code>{% else %}demo ledger (no contract configured){% endif %}</dd>
+      </dl>
+    </footer>
+  </article>
+  <p class="back"><a href="/?dao={{ m.dao }}&id={{ m.proposal_id }}">Replay the swarm for this proposal</a> · <a href="/api/memo/{{ m.dao }}/{{ m.proposal_id }}">memo JSON</a></p>
+</main>
+{% endblock %}

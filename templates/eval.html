@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% set active = 'eval' %}
+{% block body_class %}light{% endblock %}
+{% block title %}Assay · Evaluation{% endblock %}
+{% macro pct(x) %}{{ 'n/a' if x is none else '%.1f%%' % (100*x) }}{% endmacro %}
+{% block main %}
+<main class="memo-wrap">
+  <div class="lbl">EVALUATION · REAL, ALREADY-DECIDED SPUTNIK DAO PROPOSALS · MAINNET</div>
+  <article class="doc">
+    <h1>Does the swarm call the vote?</h1>
+    {% if not data %}
+    <div class="empty"><p>No results yet. Run <code>uv run swarm eval</code> and reload.</p></div>
+    {% else %}
+    {% set t = data.test.overall %}
+    <p class="lead">Held-out test DAOs ({{ data.test.daos|join(', ') }}): the swarm agreed with the final vote on <b>{{ pct(t.agreement) }}</b> of {{ '{:,}'.format(t.n) }} proposals. Saying FUND to everything would score {{ pct(t.always_fund_baseline) }}; always picking the majority outcome would score {{ pct(t.majority_baseline) }}. Balanced accuracy is {{ pct(t.balanced_accuracy) }} (50% is a coin toss). The method was frozen at {{ cfg.method_frozen_at }}, before the test DAOs were run.</p>
+    <figure class="bench" aria-label="Agreement against baselines">
+      <figcaption class="lbl">AGREEMENT WITH THE DAO'S VOTE, BY DAO</figcaption>
+      <div class="bars wide">
+        {% for d, m in data.test.per_dao.items() %}
+        <div class="bar us"><span class="v">{{ (100*m.agreement)|round|int }}</span><i style="height: {{ 100*m.agreement }}%"></i><span class="k">{{ d.split('.')[0] }} · swarm</span></div>
+        <div class="bar"><span class="v">{{ (100*m.majority_baseline)|round|int }}</span><i style="height: {{ 100*m.majority_baseline }}%"></i><span class="k">{{ d.split('.')[0] }} · majority</span></div>
+        {% endfor %}
+      </div>
+    </figure>
+    {% for split in ['test', 'dev'] if data[split] %}
+    <h2>{{ 'Test (held out)' if split=='test' else 'Dev (rules designed here)' }}</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>DAO</th><th>Reviewed</th><th>Agreement</th><th>Always FUND</th><th>Majority</th><th>Balanced</th><th>Mean cost</th><th>Claims flagged</th></tr></thead>
+      <tbody>
+      {% for d, m in data[split].per_dao.items() %}
+      <tr><td>{{ d }}</td><td>{{ m.n }} <small>({{ m.approved }}/{{ m.rejected }})</small></td><td>{{ pct(m.agreement) }}</td><td>{{ pct(m.always_fund_baseline) }}</td><td>{{ pct(m.majority_baseline) }}</td><td>{{ pct(m.balanced_accuracy) }}</td><td>{{ '%.2f' % m.mean_bids_near }} N + ${{ '%.4f' % m.mean_inference_usd }}</td><td>{{ '{:,}'.format(m.claims_flagged) }} / {{ '{:,}'.format(m.claims) }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+    {% endfor %}
+    <h2>How to read this</h2>
+    <p>Agreement means FUND on an approved proposal, or REVISE / DECLINE on a rejected one. Costs are winning sealed bids in demo NEAR plus an <em>estimate</em> of NEAR AI inference (the scripted agents make no LLM call). Most flagged claims come from <b>quickcheck</b>, a cheap agent whose knowledge base is a present-day export of the DAO: it cites votes that had not happened yet, and the reviewer refuses to pay for that.</p>
+    {% endif %}
+  </article>
+</main>
+{% endblock %}

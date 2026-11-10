@@ -56,6 +56,7 @@ def _metrics(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "rejected": len(neg),
         "agreement": agree / n,
         "always_fund_baseline": len(pos) / n,
+        "majority_baseline": max(len(pos), len(neg)) / n,
         "recall_approved": tpr,
         "recall_rejected": tnr,
         "balanced_accuracy": bal,

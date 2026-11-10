@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Assay{% endblock %}</title>
+<meta name="description" content="Assay: a funded agent swarm that reviews DAO grant proposals and records a cited memo on NEAR.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/app.css">
+<link rel="icon" href="/static/mark.svg" type="image/svg+xml">
+</head>
+<body class="{% block body_class %}dark{% endblock %}">
+<header class="top">
+  <a class="brand" href="/"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="4" fill="#3B6CF6"/><circle cx="9" cy="9" r="8" fill="none" stroke="currentColor" stroke-opacity=".4"/></svg>Assay</a>
+  <nav aria-label="Main">
+    <a href="/" {% if active=='live' %}aria-current="page"{% endif %}>Live swarm</a>
+    <a href="/eval" {% if active=='eval' %}aria-current="page"{% endif %}>Evaluation</a>
+    <a href="/agents" {% if active=='agents' %}aria-current="page"{% endif %}>Agents</a>
+  </nav>
+  <div class="right">
+    <span class="mode" title="Demo mode runs scripted agents over cached mainnet data; no keys needed">{{ mode() }}</span>
+    <button id="wallet" class="btn ghost" type="button" data-contract="{{ contract_id }}" data-network="{{ network }}">Connect wallet</button>
+  </div>
+</header>
+{% block main %}{% endblock %}
+<script type="module" src="/static/wallet.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
