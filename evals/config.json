@@ -2,9 +2,19 @@
   "method_frozen_at": "2026-11-10T08:20:00Z",
   "note": "Weights, thresholds and rules were designed on the dev DAOs only. The test DAOs were fetched but not inspected (only their status counts) before the method was frozen.",
   "splits": {
-    "dev": ["creatives.sputnik-dao.near", "ref-community-board.sputnik-dao.near", "build.sputnik-dao.near"],
-    "test": ["marketing.sputnik-dao.near", "news.sputnik-dao.near"]
+    "dev": [
+      "creatives.sputnik-dao.near",
+      "ref-community-board.sputnik-dao.near",
+      "build.sputnik-dao.near"
+    ],
+    "test": [
+      "marketing.sputnik-dao.near",
+      "news.sputnik-dao.near"
+    ]
   },
   "demo_daos": [],
-  "demo_proposals": {}
+  "demo_proposals": {},
+  "post_freeze_changes": [
+    "2026-11-10: bug fix after the first test run. A risk agent that found no red flags emitted no claims, so the reviewer sent its section back and memos were scored without a risk section. Risk agents now always cite the proposer's earlier filings. No weight or threshold changed. Pre-fix test numbers: 63.6% agreement, 53.8% balanced accuracy (commit 05f8d9e)."
+  ]
 }

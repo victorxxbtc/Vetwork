@@ -12,7 +12,7 @@
     <div class="empty"><p>No results yet. Run <code>uv run swarm eval</code> and reload.</p></div>
     {% else %}
     {% set t = data.test.overall %}
-    <p class="lead">Held-out test DAOs ({{ data.test.daos|join(', ') }}): the swarm agreed with the final vote on <b>{{ pct(t.agreement) }}</b> of {{ '{:,}'.format(t.n) }} proposals. Saying FUND to everything would score {{ pct(t.always_fund_baseline) }}; always picking the majority outcome would score {{ pct(t.majority_baseline) }}. Balanced accuracy is {{ pct(t.balanced_accuracy) }} (50% is a coin toss). The method was frozen at {{ cfg.method_frozen_at }}, before the test DAOs were run.</p>
+    <p class="lead">Held-out test DAOs ({{ data.test.daos|join(', ') }}): the swarm agreed with the final vote on <b>{{ pct(t.agreement) }}</b> of {{ '{:,}'.format(t.n) }} proposals. Saying FUND to everything would score {{ pct(t.always_fund_baseline) }}; always picking the majority outcome would score {{ pct(t.majority_baseline) }}. Balanced accuracy is {{ pct(t.balanced_accuracy) }} (50% is a coin toss). The method was frozen at {{ cfg.method_frozen_at }}, before the test DAOs were run.{% for c in cfg.get('post_freeze_changes', []) %} <em>Change after freezing:</em> {{ c }}{% endfor %}</p>
     <figure class="bench" aria-label="Agreement against baselines">
       <figcaption class="lbl">AGREEMENT WITH THE DAO'S VOTE, BY DAO</figcaption>
       <div class="bars wide">

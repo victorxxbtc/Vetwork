@@ -101,7 +101,7 @@ table.mono td{font:12px var(--mono)}
 .bar{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;position:relative;min-width:0}
 .bar i{display:block;background:#D9D6D0}
 .bar.us i{background:var(--blue)}
-.bar.none i{background:repeating-linear-gradient(45deg,#E2DFDA 0 4px,#fff 4px 8px)}
+.bar.none i{background:#fff;border:1px dashed #B9B4AC}
 .bar .v{font:12px var(--mono);color:#3D3A36;text-align:center;margin-bottom:4px}
 .bar .k{position:absolute;bottom:-22px;left:0;right:0;text-align:center;font:10.5px var(--mono);color:var(--dmute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bars.wide{height:200px}

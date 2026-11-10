@@ -306,16 +306,16 @@ def risk(ctx: ReviewContext, kb: dict[str, Any] | None = None) -> Finding:
         )
         penalty += 10
     prior_any = [p for p in earlier if p["proposer"] == proposer]
-    if not prior_any:
-        claims.append(
-            Claim(
-                "Proposer has never filed a transfer request in this DAO before.",
-                "count",
-                0,
-                [],
-                {"proposer": proposer, "receiver": None, "status": None},
-            )
+    claims.append(
+        Claim(
+            f"Proposer filed {len(prior_any)} earlier transfer request{'' if len(prior_any) == 1 else 's'} in this DAO.",
+            "count",
+            len(prior_any),
+            _ids(ctx.dao, prior_any),
+            {"proposer": proposer, "receiver": None, "status": None},
         )
+    )
+    if not prior_any:
         penalty += 10
     if receiver != proposer:
         claims.append(
@@ -323,7 +323,10 @@ def risk(ctx: ReviewContext, kb: dict[str, Any] | None = None) -> Finding:
         )
         penalty += 0  # informational: payouts to a team multisig are normal
     score = max(10, 90 - penalty)
-    flags = [c for c in claims if c.kind != "target_field" or c.params.get("field") != "receiver_id"]
+    flags = [
+        c for c in claims
+        if not (c.kind == "target_field" and c.params.get("field") == "receiver_id") and not (c.kind == "count" and c.value)
+    ]
     summary = "No red flags." if not flags else f"{len(flags)} risk signal{'s' if len(flags) > 1 else ''}."
     return Finding("risk", "", score, summary, claims)
 
