@@ -64,7 +64,7 @@ Requires Python 3.13 and [uv](https://docs.astral.sh/uv/). Rust only for the con
 
 ```
 uv sync
-uv run pytest            # → 20 passed (Python: bidding, leakage guard, reviewer, ledger, end to end, web)
+uv run pytest            # → 19 passed (Python: bidding, leakage guard, reviewer, ledger, end to end, web)
 uv run swarm demo        # → open http://127.0.0.1:8000 and watch the swarm review Marketing DAO proposal #1005
 uv run swarm eval        # → re-runs the held-out evaluation from the cached mainnet data (~1 min) and prints the table
 cd contract && cargo test   # → contract unit tests: escrow, sub-account agents, sealed bids, payouts, memo record
