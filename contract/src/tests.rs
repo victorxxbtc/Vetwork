@@ -177,3 +177,11 @@ fn backers_share_earnings_pro_rata() {
     let out = c.withdraw_backing(agent("ledger"), U128(minted)).0;
     assert_eq!(out, 2 * N - SUBACCOUNT_SEED + N / 2);
 }
+
+#[test]
+fn mul_div_is_exact_beyond_u128() {
+    let y = 10u128.pow(24);
+    assert_eq!(crate::mul_div(5 * y, 3 * y, 7 * y), 15 * y / 7);
+    assert_eq!(crate::mul_div(u128::MAX, u128::MAX, u128::MAX), u128::MAX);
+    assert_eq!(crate::mul_div(7, 9, 4), 15);
+}

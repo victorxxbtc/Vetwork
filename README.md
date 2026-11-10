@@ -67,7 +67,7 @@ uv sync
 uv run pytest            # → 19 passed (Python: bidding, leakage guard, reviewer, ledger, end to end, web)
 uv run swarm demo        # → open http://127.0.0.1:8000 and watch the swarm review Marketing DAO proposal #1005
 uv run swarm eval        # → re-runs the held-out evaluation from the cached mainnet data (~1 min) and prints the table
-cd contract && cargo test   # → contract unit tests: escrow, sub-account agents, sealed bids, payouts, memo record
+cd contract && cargo test   # → 12 passed (escrow, sub-account agents, sealed bids, pro-rata payouts, memo record)
 ```
 
 Do X → see Y:
@@ -89,7 +89,7 @@ Refresh the cached data from mainnet (read-only RPC): `uv run swarm fetch`. Prin
 - "Treasury impact" uses approved outflow as a proxy; it does not read historical DAO balances (that needs an archival node).
 - Grant DAOs on chain are approval-heavy; only 3,235 rejections across 5 DAOs, and the News DAO is a content-bounty DAO rather than a classic grant DAO.
 - The reviewer is deterministic. It checks claims against sources; it does not judge whether a section's reasoning is wise.
-- The contract has unit tests but no sandbox integration test, has not been audited, and is not deployed. Demo-mode payments happen in an in-memory ledger that mirrors it.
+- The contract has unit tests (12 passed) but no sandbox integration test, has not been audited, has not been built to wasm here (offline network) and is not deployed. Demo-mode payments happen in an in-memory ledger that mirrors it.
 - NEAR AI models used are listed as TEE-verifiable, but Assay makes no privacy claim: proposals are public.
 
 ## 6. On-chain record

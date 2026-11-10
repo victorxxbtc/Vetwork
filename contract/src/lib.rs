@@ -245,7 +245,7 @@ impl Contract {
         require!(amount > 0, "attach NEAR");
         let backer = env::predecessor_account_id();
         let a = self.agents.get_mut(&agent).expect("no such agent");
-        let minted = if a.total_shares.0 == 0 || a.balance.0 == 0 { amount } else { amount * a.total_shares.0 / a.balance.0 };
+        let minted = if a.total_shares.0 == 0 || a.balance.0 == 0 { amount } else { mul_div(amount, a.total_shares.0, a.balance.0) };
         require!(minted > 0, "deposit too small");
         a.balance.0 += amount;
         a.total_shares.0 += minted;
@@ -262,7 +262,7 @@ impl Contract {
         let held = self.shares.get(&k).copied().unwrap_or(0);
         require!(shares.0 > 0 && shares.0 <= held, "not enough shares");
         let a = self.agents.get_mut(&agent).expect("no such agent");
-        let out = shares.0 * a.balance.0 / a.total_shares.0;
+        let out = mul_div(shares.0, a.balance.0, a.total_shares.0);
         a.balance.0 -= out;
         a.total_shares.0 -= shares.0;
         self.shares.insert(k, held - shares.0);
@@ -406,6 +406,30 @@ impl Contract {
     pub fn get_roles(&self) -> (AccountId, AccountId, AccountId) {
         (self.owner.clone(), self.reviewer.clone(), self.operator.clone())
     }
+}
+
+/// floor(a * b / c) without overflow: yoctoNEAR × shares exceeds u128, so take the
+/// full 256-bit product and long-divide it. Panics if c == 0 or the quotient exceeds u128.
+pub(crate) fn mul_div(a: u128, b: u128, c: u128) -> u128 {
+    require!(c > 0, "division by zero");
+    let (a1, a0) = (a >> 64, a & u64::MAX as u128);
+    let (b1, b0) = (b >> 64, b & u64::MAX as u128);
+    let (p00, p01, p10, p11) = (a0 * b0, a0 * b1, a1 * b0, a1 * b1);
+    let mid = (p00 >> 64) + (p01 & u64::MAX as u128) + (p10 & u64::MAX as u128);
+    let lo = (p00 & u64::MAX as u128) | (mid << 64);
+    let hi = p11 + (p01 >> 64) + (p10 >> 64) + (mid >> 64);
+    require!(hi < c, "mul_div overflow");
+    let (mut rem, mut q) = (hi, 0u128);
+    for i in (0..128).rev() {
+        let carry = rem >> 127;
+        rem = (rem << 1) | ((lo >> i) & 1);
+        q <<= 1;
+        if carry == 1 || rem >= c {
+            rem = rem.wrapping_sub(c);
+            q |= 1;
+        }
+    }
+    q
 }
 
 #[cfg(test)]
