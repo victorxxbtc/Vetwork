@@ -66,6 +66,8 @@ def _metrics(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "claims": sum(r["claims"] for r in rows),
         "claims_flagged": sum(r["flagged"] for r in rows),
         "sections_reassigned": sum(r["reassigned"] for r in rows),
+        "sections_reviewed": sum(r.get("sections_reviewed", 0) for r in rows),
+        "order_agreement": (sum(r.get("orders_agree", 0) for r in rows) / s) if (s := sum(r.get("sections_reviewed", 0) for r in rows)) else None,
     }
 
 
@@ -106,6 +108,8 @@ def run(split: str = "test", limit: int | None = None, write: bool = True, progr
                     "claims": m["claims_total"],
                     "flagged": m["claims_flagged"],
                     "reassigned": sum(e["type"] == "reassigned" for e in res.events),
+                    "sections_reviewed": sum(e["type"] == "reviewed" for e in res.events),
+                    "orders_agree": sum(e["type"] == "reviewed" and e.get("orders_agree", False) for e in res.events),
                     "memo_hash": m["memo_hash"],
                 }
             )

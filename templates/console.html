@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% set active = 'live' %}
-{% block title %}Assay · Live swarm · {{ dao.split('.')[0] }} #{{ p.id }}{% endblock %}
+{% block title %}Vetwork · Live swarm · {{ dao.split('.')[0] }} #{{ p.id }}{% endblock %}
 {% block main %}
 <main class="console">
   <section class="head">
@@ -45,6 +45,6 @@
 {% endblock %}
 {% block scripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
-<script>window.ASSAY = {{ {"dao": dao, "id": p.id, "agents": agents}|tojson }};</script>
+<script>window.VETWORK = {{ {"dao": dao, "id": p.id, "agents": agents}|tojson }};</script>
 <script src="/static/console.js?v={{ asset_v }}"></script>
 {% endblock %}

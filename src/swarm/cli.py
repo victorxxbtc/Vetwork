@@ -44,7 +44,7 @@ def main(argv: list[str] | None = None) -> None:
     if a.cmd == "demo":
         import uvicorn
 
-        print(f"Assay console: http://{a.host}:{a.port}  (mode: {'NEAR AI' if os.environ.get('NEAR_AI_API_KEY') else 'demo, no keys'})")
+        print(f"Vetwork console: http://{a.host}:{a.port}  (mode: {'NEAR AI' if os.environ.get('NEAR_AI_API_KEY') else 'demo, no keys'})")
         uvicorn.run("swarm.web.app:app", host=a.host, port=a.port, log_level="warning")
     elif a.cmd == "eval":
         o = run(a.split, a.limit, write=a.limit is None)

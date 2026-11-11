@@ -28,7 +28,7 @@ class NearRpc:
         self.retries = retries
 
     def _post(self, method: str, params: dict[str, Any]) -> dict[str, Any]:
-        body = json.dumps({"jsonrpc": "2.0", "id": "assay", "method": method, "params": params}).encode()
+        body = json.dumps({"jsonrpc": "2.0", "id": "vetwork", "method": method, "params": params}).encode()
         req = urllib.request.Request(self.url, body, {"Content-Type": "application/json"})
         last: Exception | None = None
         for attempt in range(self.retries):

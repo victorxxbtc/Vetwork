@@ -21,11 +21,12 @@ from .bidding import SealedAuction, commitment
 from .context import ReviewContext, build_context
 from .ledger import YOCTO, Ledger, LedgerError, near
 from .review.memo import build_memo
-from .review.reviewer import review_finding
+from .review.blind import blind_review, llm_support_check
 
-SWARM_ACCOUNT = os.environ.get("SWARM_ACCOUNT", "assay.testnet")
+SWARM_ACCOUNT = os.environ.get("SWARM_ACCOUNT", "vetwork.testnet")
 NEAR_USD = float(os.environ.get("NEAR_USD", "3.00"))  # assumed rate, only used to convert inference USD to NEAR
 DEFAULT_BOUNTY = near(2.0)
+REVIEWER_MODEL = os.environ.get("REVIEWER_MODEL", "Qwen/Qwen3.8-27B")
 
 
 def _unit(*parts: Any) -> float:
@@ -184,9 +185,13 @@ def run_job(
             ev.append({"type": "inference_paid", "agent": c.agent, "section": section, "model": spec.model,
                        "tokens_in": f.tokens_in, "tokens_out": f.tokens_out, "usd": round(usd, 6), "fee": str(fee),
                        "metered": llm is not None})
-            verdict = review_finding(f, ctx)
+            verdict = blind_review(f, ctx)
+            support = None
+            if llm is not None and verdict.accepted and f.summary:
+                support = llm_support_check(llm, REVIEWER_MODEL, f.summary, [c2.text for c2 in f.claims])
             ev.append({"type": "reviewed", "agent": c.agent, "section": section, "accepted": verdict.accepted,
                        "verified": verdict.verified, "flagged": verdict.flagged, "score": f.score,
+                       "blind": True, "orders_agree": verdict.orders_agree, "llm_support": support,
                        "flags": [c2.reason for c2 in f.claims if c2.status == "flagged"][:3]})
             if verdict.accepted:
                 accepted[section] = f

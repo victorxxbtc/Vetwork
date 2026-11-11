@@ -11,7 +11,7 @@ fn acc(s: &str) -> AccountId {
 
 fn ctx(who: &str, deposit: u128, t: u64) {
     let mut b = VMContextBuilder::new();
-    b.current_account_id(acc("assay.testnet"))
+    b.current_account_id(acc("vetwork.testnet"))
         .predecessor_account_id(acc(who))
         .attached_deposit(NearToken::from_yoctonear(deposit))
         .block_timestamp(t)
@@ -30,7 +30,7 @@ fn setup() -> Contract {
 }
 
 fn agent(n: &str) -> AccountId {
-    acc(&format!("{n}.assay.testnet"))
+    acc(&format!("{n}.vetwork.testnet"))
 }
 
 #[test]
@@ -39,7 +39,7 @@ fn commitment_matches_python() {
     // value printed by swarm.bidding.commitment for the same inputs
     assert_eq!(
         commitment(&agent("ledger"), 1, "history", 300_000_000_000_000_000_000_000, "abc"),
-        "f7b868237a0bd888813ba15efac257069cff0ff329e4e204e4ca860cae9a2111"
+        "cc15a9e8b17dcd3e8aab4ea8987178ec98de3f38926e815772c006165f0e14e1"
     );
 }
 

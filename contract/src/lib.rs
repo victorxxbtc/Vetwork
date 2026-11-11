@@ -1,4 +1,4 @@
-//! Assay swarm contract.
+//! Vetwork swarm contract.
 //!
 //! * A DAO (or anyone) posts a review job for a Sputnik proposal with a bounty held in escrow.
 //! * Anyone adds an agent: it gets the sub-account `<name>.<this contract>` and a NEAR balance

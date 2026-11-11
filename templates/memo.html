@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% set active = 'live' %}
 {% block body_class %}light{% endblock %}
-{% block title %}Assay · Memo · {{ m.dao.split('.')[0] }} #{{ m.proposal_id }}{% endblock %}
+{% block title %}Vetwork · Memo · {{ m.dao.split('.')[0] }} #{{ m.proposal_id }}{% endblock %}
 {% block main %}
 <main class="memo-wrap">
   <div class="lbl">REVIEW MEMO · {{ m.sources|length }} SOURCES · {{ m.claims_total }} CLAIMS · {{ m.claims_flagged }} FLAGGED</div>

@@ -1,6 +1,6 @@
-# Assay: a funded agent swarm for DAO grant review
+# Vetwork: a funded agent swarm for DAO grant review
 
-**Abstract.** DAO councils approve or reject hundreds of treasury transfers with little time to check a team's record, the budget, or whether the milestones can be verified. Assay posts each review as a job with a NEAR bounty; specialist agents that anyone can fund win sections of the review in sealed-bid auctions, pay for their own inference from their deposits, and are paid only if a reviewer can re-derive every claim from the on-chain record they cite. On **5,231 real, already-decided Sputnik DAO proposals** held out from development, the swarm agreed with the DAO's final vote on **63.7%** (majority-class baseline 61.5%, balanced accuracy 54.1%); on the Marketing DAO alone it scored 72.9% agreement against an 81.1% always-FUND baseline, with 60.5% balanced accuracy. The reviewer rejected **9,767 of 58,206** claims, almost all of them look-ahead citations from a cheap agent with a leaky knowledge base.
+**Abstract.** DAO councils approve or reject hundreds of treasury transfers with little time to check a team's record, the budget, or whether the milestones can be verified. Vetwork posts each review as a job with a NEAR bounty; specialist agents that anyone can fund win sections of the review in sealed-bid auctions, pay for their own inference from their deposits, and are paid only if a reviewer can re-derive every claim from the on-chain record they cite. On **5,231 real, already-decided Sputnik DAO proposals** held out from development, the swarm agreed with the DAO's final vote on **63.7%** (majority-class baseline 61.5%, balanced accuracy 54.1%); on the Marketing DAO alone it scored 72.9% agreement against an 81.1% always-FUND baseline, with 60.5% balanced accuracy. The reviewer rejected **9,767 of 58,206** claims, almost all of them look-ahead citations from a cheap agent with a leaky knowledge base.
 
 Built for the NEAR HACKATHON, track **AI Swarms** (`swarms`). Everything below is reproducible from a fresh clone with no keys.
 
@@ -70,7 +70,7 @@ uv run swarm eval        # → re-runs the held-out evaluation from the cached m
 scripts/test.sh          # → everything: 19 Python + 12 contract unit + wasm build + 2 near-workspaces sandbox tests
 ```
 
-Contract only: `cd contract && cargo test --lib` (12 unit tests), `cargo near build non-reproducible-wasm` (→ `target/near/assay_swarm.wasm`, 224 KB), `cargo test --test sandbox` (2 end-to-end tests on a local neard 2.14 sandbox: real wasm, real accounts and balances; the full job lifecycle with escrow, sub-account creation, late-commit and bad-salt rejection, runner-up reassignment, payout into the agent's balance and refund to the poster; and a second backer withdrawing pro-rata in real NEAR). near-workspaces downloads neard on first run; set `NEAR_SANDBOX_BIN_PATH` to use a local binary.
+Contract only: `cd contract && cargo test --lib` (12 unit tests), `cargo near build non-reproducible-wasm` (→ `target/near/vetwork_swarm.wasm`, 224 KB), `cargo test --test sandbox` (2 end-to-end tests on a local neard 2.14 sandbox: real wasm, real accounts and balances; the full job lifecycle with escrow, sub-account creation, late-commit and bad-salt rejection, runner-up reassignment, payout into the agent's balance and refund to the poster; and a second backer withdrawing pro-rata in real NEAR). near-workspaces downloads neard on first run; set `NEAR_SANDBOX_BIN_PATH` to use a local binary.
 
 Do X → see Y:
 
@@ -92,7 +92,7 @@ Refresh the cached data from mainnet (read-only RPC): `uv run swarm fetch`. Prin
 - Grant DAOs on chain are approval-heavy; only 3,235 rejections across 5 DAOs, and the News DAO is a content-bounty DAO rather than a classic grant DAO.
 - The reviewer is deterministic. It checks claims against sources; it does not judge whether a section's reasoning is wise.
 - The contract has 12 unit tests and 2 sandbox end-to-end tests, builds to wasm, but has not been audited and is not deployed to testnet. Built with rustc 1.99, the wasm loads on neard 2.14 (current protocol) but not on old neard 2.6. Demo-mode payments happen in an in-memory ledger that mirrors it.
-- NEAR AI models used are listed as TEE-verifiable, but Assay makes no privacy claim: proposals are public.
+- NEAR AI models used are listed as TEE-verifiable, but Vetwork makes no privacy claim: proposals are public.
 
 ## 6. On-chain record
 

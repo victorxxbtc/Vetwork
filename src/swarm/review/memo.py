@@ -79,7 +79,7 @@ def build_memo(
             }
         )
     memo = {
-        "schema": "assay.memo/1",
+        "schema": "vetwork.memo/1",
         "job_id": job_id,
         "dao": dao,
         "proposal_id": proposal["id"],

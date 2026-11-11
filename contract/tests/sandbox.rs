@@ -3,7 +3,7 @@
 //!
 //! Needs the wasm (`cargo near build non-reproducible-wasm`) and a sandbox binary
 //! (`NEAR_SANDBOX_BIN_PATH=/path/to/near-sandbox`, or let near-workspaces download one).
-//! Skips with a message when `ASSAY_SKIP_SANDBOX=1`.
+//! Skips with a message when `VETWORK_SKIP_SANDBOX=1`.
 
 use near_workspaces::types::NearToken;
 use near_workspaces::{Account, Contract};
@@ -11,7 +11,7 @@ use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 
 const N: u128 = 1_000_000_000_000_000_000_000_000;
-const WASM: &str = "target/near/assay_swarm.wasm";
+const WASM: &str = "target/near/vetwork_swarm.wasm";
 
 fn commitment(agent: &str, job: u64, section: &str, price: u128, salt: &str) -> String {
     let h = Sha256::digest(format!("{agent}:{job}:{section}:{price}:{salt}").as_bytes());
@@ -42,7 +42,7 @@ async fn world() -> anyhow::Result<World> {
         }
     };
     let (owner, reviewer, operator, dao, backer) = (mk("owner").await?, mk("reviewer").await?, mk("operator").await?, mk("dao").await?, mk("backer").await?);
-    let swarm = root.create_subaccount("assay").initial_balance(NearToken::from_near(30)).transact().await?.into_result()?;
+    let swarm = root.create_subaccount("vetwork").initial_balance(NearToken::from_near(30)).transact().await?.into_result()?;
     let c = swarm.deploy(&wasm).await?.into_result()?;
     c.call("new")
         .args_json(json!({"owner": owner.id(), "reviewer": reviewer.id(), "operator": operator.id()}))
@@ -85,8 +85,8 @@ async fn wait_until(w: &World, t_ns: u64) -> anyhow::Result<()> {
 }
 
 fn skip() -> bool {
-    if std::env::var_os("ASSAY_SKIP_SANDBOX").is_some() {
-        eprintln!("ASSAY_SKIP_SANDBOX set: skipping sandbox test");
+    if std::env::var_os("VETWORK_SKIP_SANDBOX").is_some() {
+        eprintln!("VETWORK_SKIP_SANDBOX set: skipping sandbox test");
         return true;
     }
     false

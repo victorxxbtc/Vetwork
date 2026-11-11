@@ -33,8 +33,8 @@ def dec():
 # ------------------------------------------------------------------ bidding
 def test_commitment_matches_contract_vector():
     # the same vector is asserted in contract/src/tests.rs
-    assert commitment("ledger.assay.testnet", 1, "history", 300_000_000_000_000_000_000_000, "abc") == (
-        "f7b868237a0bd888813ba15efac257069cff0ff329e4e204e4ca860cae9a2111"
+    assert commitment("ledger.vetwork.testnet", 1, "history", 300_000_000_000_000_000_000_000, "abc") == (
+        "cc15a9e8b17dcd3e8aab4ea8987178ec98de3f38926e815772c006165f0e14e1"
     )
 
 

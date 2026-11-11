@@ -1,6 +1,6 @@
 // Live swarm console: D3 force graph + SSE bid log. No build step.
 (function () {
-  const A = window.ASSAY;
+  const A = window.VETWORK;
   const svg = d3.select("#graph");
   const log = document.getElementById("log");
   const status = document.getElementById("status");

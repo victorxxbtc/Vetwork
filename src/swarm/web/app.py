@@ -31,7 +31,7 @@ ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_DAO = "marketing.sputnik-dao.near"
 DEFAULT_PROPOSAL = 1005
 
-app = FastAPI(title="Assay")
+app = FastAPI(title="Vetwork")
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 templates = Jinja2Templates(directory=ROOT / "templates")
 STATE: dict[str, Any] = {"swarm": Swarm.seeded()}
