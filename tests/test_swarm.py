@@ -199,6 +199,7 @@ def test_pages_render():
     assert "FUND" in c.get(f"/memo/{DAO}/1005").text or "REVISE" in c.get(f"/memo/{DAO}/1005").text
     assert c.get("/eval").status_code == 200
     assert c.get("/agents").status_code == 200
+    assert " of 20 attacks refused" in c.get("/break").text
     body = c.get("/events?speed=0").text
     assert "memo_recorded" in body and "event: done" in body
     assert c.get(f"/memo/{DAO}/999999").status_code == 404

@@ -18,6 +18,7 @@
     <a href="/" {% if active=='live' %}aria-current="page"{% endif %}>Live swarm</a>
     <a href="/eval" {% if active=='eval' %}aria-current="page"{% endif %}>Evaluation</a>
     <a href="/agents" {% if active=='agents' %}aria-current="page"{% endif %}>Agents</a>
+    <a href="/break" {% if active=='break' %}aria-current="page"{% endif %}>Try to break it</a>
   </nav>
   <div class="right">
     <span class="mode" title="Demo mode runs scripted agents over cached mainnet data; no keys needed">{{ mode() }}</span>

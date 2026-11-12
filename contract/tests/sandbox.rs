@@ -167,3 +167,18 @@ async fn backers_withdraw_earnings_pro_rata_in_real_near() -> anyhow::Result<()>
     assert!(again.is_failure());
     Ok(())
 }
+
+#[tokio::test]
+async fn evaluation_preregistration_hash_is_recorded_on_chain() -> anyhow::Result<()> {
+    if skip() {
+        return Ok(());
+    }
+    let w = world().await?;
+    let doc: Value = serde_json::from_str(&std::fs::read_to_string("../evals/preregistration.json")?)?;
+    let hash = doc["hash"].as_str().unwrap();
+    w.dao.call(w.c.id(), "preregister").args_json(json!({"hash": hash, "note": "Vetwork held-out evaluation"})).transact().await?.into_result()?;
+    let got: Value = w.c.view("get_preregistration").args_json(json!({"hash": hash})).await?.json()?;
+    assert_eq!(got["by"], json!(w.dao.id()));
+    assert!(got["at"].as_u64().unwrap() > 0);
+    Ok(())
+}

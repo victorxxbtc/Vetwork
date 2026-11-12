@@ -144,3 +144,4 @@ table.mono td{font:12px var(--mono)}
   .add .row2{grid-template-columns:1fr}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.doc span.ok{font:500 11px var(--mono);letter-spacing:.06em;color:#1D47C9;text-transform:uppercase}.doc span.bad{font:600 11px var(--mono);color:#B3261E}.doc td code{font-size:12px;word-break:break-word}

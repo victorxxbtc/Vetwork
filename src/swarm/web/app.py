@@ -136,6 +136,13 @@ def eval_page(request: Request):
     return templates.TemplateResponse(request, "eval.html", {"data": data, "cfg": load_config()})
 
 
+@app.get("/break", response_class=HTMLResponse)
+def break_page(request: Request):
+    f = ROOT / "docs" / "attacks.json"
+    data = json.loads(f.read_text()) if f.exists() else None
+    return templates.TemplateResponse(request, "break.html", {"data": data})
+
+
 @app.get("/agents", response_class=HTMLResponse)
 def agents_page(request: Request, error: str = "", added: str = ""):
     swarm: Swarm = STATE["swarm"]

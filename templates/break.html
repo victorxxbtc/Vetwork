@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% set active = 'break' %}
+{% block body_class %}light{% endblock %}
+{% block title %}Vetwork · Try to break it{% endblock %}
+{% block main %}
+<main class="memo-wrap">
+  <div class="lbl">TRY TO BREAK IT · REAL TRANSACTIONS AGAINST THE COMPILED CONTRACT · LOCAL SANDBOX</div>
+  <article class="doc">
+    {% if not data %}
+    <h1>No attack run yet</h1>
+    <div class="empty"><p>Run <code>scripts/test.sh</code> (or <code>cd contract &amp;&amp; cargo test --test attacks</code>) and reload.</p></div>
+    {% else %}
+    <h1>{{ data.refused }} of {{ data.total }} attacks refused</h1>
+    <p class="lead">Each row is a real transaction sent from a real account to the compiled contract on a {{ data.sandbox }} sandbox chain by <code>contract/tests/attacks.rs</code>. "Refused" means the chain rejected it with the message shown, or for a forged reveal, that the bid was not counted. Nothing here is mocked; it is not testnet or mainnet either.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>Attack</th><th>What we sent</th><th>Chain's answer</th><th>Result</th></tr></thead>
+      <tbody>
+      {% for a in data.attacks %}
+      <tr><td>{{ loop.index }}</td><td>{{ a.attack }}</td><td>{{ a.how }}</td><td><code>{{ a.answer }}</code></td><td>{% if a.refused %}<span class="ok">refused</span>{% else %}<span class="bad">ACCEPTED</span>{% endif %}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+    <p>Run it yourself: <code>cd contract &amp;&amp; cargo near build non-reproducible-wasm &amp;&amp; cargo test --test attacks -- --nocapture</code>.</p>
+    {% endif %}
+  </article>
+</main>
+{% endblock %}
