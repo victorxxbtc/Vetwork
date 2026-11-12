@@ -45,6 +45,8 @@ def main(argv: list[str] | None = None) -> None:
     pr = sub.add_parser("prereg", help="pin DAOs, method and metric; write evals/preregistration.json and print its hash")
     pr.add_argument("daos", nargs="+")
     pr.add_argument("--note", default="")
+    rp = sub.add_parser("reputation", help="recompute agent reputation from a contract EVENT_JSON log")
+    rp.add_argument("events", nargs="?", default="docs/sandbox-events.jsonl")
     f = sub.add_parser("fetch", help="re-download proposals from mainnet RPC (read-only)")
     f.add_argument("daos", nargs="*")
     r = sub.add_parser("review", help="print one memo as JSON")
@@ -68,6 +70,14 @@ def main(argv: list[str] | None = None) -> None:
 
         doc = write(a.daos, a.note)
         print(f"pre-registered {len(a.daos)} DAOs at {doc['registered_at']}\nhash {doc['hash']}\n-> {PREREG}")
+    elif a.cmd == "reputation":
+        from pathlib import Path
+
+        from .reputation import from_file
+
+        print("| agent | accepted | rejected | slashed | reputation |\n|---|---|---|---|---|")
+        for agent, r in sorted(from_file(Path(a.events)).items()):
+            print(f"| {agent} | {r.accepted} | {r.rejected} | {r.slashed} | {r.score_bp / 100:.2f}% |")
     elif a.cmd == "fetch":
         from pathlib import Path
 

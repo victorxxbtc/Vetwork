@@ -11,3 +11,6 @@ cargo near build non-reproducible-wasm
 cargo test --test sandbox
 cargo test --test attacks -- --nocapture | grep -E "refused|ACCEPTED"
 cp target/attacks.json ../docs/attacks.json
+cargo test --test reputation -- --nocapture | grep -E "events;"
+cp target/events.jsonl ../docs/sandbox-events.jsonl
+cp target/reputation.json ../docs/sandbox-reputation.json

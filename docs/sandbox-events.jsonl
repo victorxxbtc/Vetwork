@@ -1,0 +1,9 @@
+{"event":"job_posted","job_id":1,"dao":"marketing.sputnik-dao.near","proposal_id":1,"bounty":"2000000000000000000000000"}
+{"event":"section_rejected","job_id":1,"section":"history","agent":"quickcheck.vetwork.test.near"}
+{"event":"payout","job_id":1,"section":"history","agent":"ledger.vetwork.test.near","amount":"250000000000000000000000","bond_until":1794699627027122000}
+{"event":"memo_recorded","dao":"marketing.sputnik-dao.near","proposal_id":1,"memo_hash":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","verdict":"FUND","score":70}
+{"event":"challenged","job_id":1,"section":"history","agent":"ledger.vetwork.test.near","by":"backer.test.near","claim":0}
+{"event":"slashed","job_id":1,"section":"history","agent":"ledger.vetwork.test.near","amount":"250000000000000000000000"}
+{"event":"job_posted","job_id":2,"dao":"marketing.sputnik-dao.near","proposal_id":2,"bounty":"2000000000000000000000000"}
+{"event":"payout","job_id":2,"section":"history","agent":"quickcheck.vetwork.test.near","amount":"100000000000000000000000","bond_until":1794699664663238000}
+{"event":"memo_recorded","dao":"marketing.sputnik-dao.near","proposal_id":2,"memo_hash":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","verdict":"FUND","score":70}

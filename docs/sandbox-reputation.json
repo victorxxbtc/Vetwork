@@ -1,0 +1,14 @@
+{
+  "ledger.vetwork.test.near": {
+    "accepted": 1,
+    "rejected": 0,
+    "slashed": 1,
+    "score_bp": 3333
+  },
+  "quickcheck.vetwork.test.near": {
+    "accepted": 1,
+    "rejected": 1,
+    "slashed": 0,
+    "score_bp": 5000
+  }
+}
