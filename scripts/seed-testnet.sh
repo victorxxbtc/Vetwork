@@ -9,3 +9,8 @@ near contract call-function as-transaction "$SWARM" register_agent \
 near contract call-function as-transaction "$SWARM" post_job \
   json-args '{"dao":"marketing.sputnik-dao.near","proposal_id":1005,"description":"Grant review","commit_secs":600,"reveal_secs":600}' \
   prepaid-gas '30 Tgas' attached-deposit '2 NEAR' sign-as "$ME" network-config testnet sign-with-keychain send
+# record the evaluation's pre-registration hash on chain (who + block time)
+PRH=$(python3 -c 'import json;print(json.load(open("evals/preregistration.json"))["hash"])')
+near contract call-function as-transaction "$SWARM" preregister \
+  json-args "{\"hash\":\"$PRH\",\"note\":\"Vetwork held-out evaluation (git 590a110)\"}" \
+  prepaid-gas '10 Tgas' attached-deposit '0 NEAR' sign-as "$ME" network-config testnet sign-with-keychain send

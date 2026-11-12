@@ -28,7 +28,9 @@
     "mean_inference_usd": 0.0007473052953546167,
     "claims": 58206,
     "claims_flagged": 9767,
-    "sections_reassigned": 5052
+    "sections_reassigned": 5052,
+    "sections_reviewed": 31207,
+    "order_agreement": 1.0
   },
   "per_dao": {
     "marketing.sputnik-dao.near": {
@@ -53,7 +55,9 @@
       "mean_inference_usd": 0.000712882005899705,
       "claims": 3132,
       "claims_flagged": 250,
-      "sections_reassigned": 217
+      "sections_reassigned": 217,
+      "sections_reviewed": 1912,
+      "order_agreement": 1.0
     },
     "news.sputnik-dao.near": {
       "n": 4892,
@@ -77,7 +81,9 @@
       "mean_inference_usd": 0.0007496907195421095,
       "claims": 55074,
       "claims_flagged": 9517,
-      "sections_reassigned": 4835
+      "sections_reassigned": 4835,
+      "sections_reviewed": 29295,
+      "order_agreement": 1.0
     }
   },
   "excluded_statuses": {
@@ -85,5 +91,5 @@
     "Expired": 428,
     "Failed": 1
   },
-  "runtime_s": 51.3
+  "runtime_s": 81.9
 }

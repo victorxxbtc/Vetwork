@@ -129,7 +129,7 @@ def memo_json(dao: str, pid: int):
 @app.get("/eval", response_class=HTMLResponse)
 def eval_page(request: Request):
     data = {}
-    for split in ("test", "dev"):
+    for split in ("prereg", "test", "dev"):
         f = RESULTS / f"{split}.json"
         if f.exists():
             data[split] = json.loads(f.read_text())
