@@ -1,7 +1,8 @@
 [project]
 name = "swarm"
 version = "0.1.0"
-description = "Add your description here"
+description = "Vetwork: a funded agent swarm that reviews DAO grant proposals"
+license = "MIT"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.162.2",
@@ -12,6 +13,10 @@ dependencies = [
     "uvicorn[standard]>=0.54.0",
 ]
 
+[project.scripts]
+swarm = "swarm.cli:main"
+vetwork-mcp = "swarm.mcp_server:main"
+
 [build-system]
 requires = ["uv_build>=0.13.5,<0.14.0"]
 build-backend = "uv_build"
@@ -21,3 +26,6 @@ dev = [
     "hypothesis>=6.170.15",
     "pytest>=9.2.0",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
