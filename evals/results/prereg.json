@@ -1,0 +1,127 @@
+{
+  "split": "prereg",
+  "daos": [
+    "community.sputnik-dao.near",
+    "onboarding-dao.sputnik-dao.near",
+    "nearweek-news-contribution.sputnik-dao.near"
+  ],
+  "backend": "scripted (deterministic tools; no LLM calls; inference cost is an estimate)",
+  "method_frozen_at": "2026-11-10T08:20:00Z",
+  "overall": {
+    "n": 12133,
+    "approved": 4947,
+    "rejected": 7186,
+    "agreement": 0.5959779114810847,
+    "always_fund_baseline": 0.4077309816203742,
+    "majority_baseline": 0.5922690183796259,
+    "recall_approved": 0.012330705478067515,
+    "recall_rejected": 0.9977734483718341,
+    "balanced_accuracy": 0.5050520769249508,
+    "confusion": {
+      "DECLINE|Approved": 4859,
+      "DECLINE|Rejected": 7161,
+      "FUND|Approved": 61,
+      "FUND|Rejected": 16,
+      "REVISE|Approved": 27,
+      "REVISE|Rejected": 9
+    },
+    "mean_bids_near": 1.1029811258551059,
+    "mean_inference_usd": 0.0007547322179180747,
+    "claims": 135679,
+    "claims_flagged": 24100,
+    "sections_reassigned": 12089,
+    "sections_reviewed": 72754,
+    "order_agreement": 1.0
+  },
+  "per_dao": {
+    "community.sputnik-dao.near": {
+      "n": 8,
+      "approved": 5,
+      "rejected": 3,
+      "agreement": 0.5,
+      "always_fund_baseline": 0.625,
+      "majority_baseline": 0.625,
+      "recall_approved": 0.4,
+      "recall_rejected": 0.6666666666666666,
+      "balanced_accuracy": 0.5333333333333333,
+      "confusion": {
+        "FUND|Approved": 2,
+        "FUND|Rejected": 1,
+        "REVISE|Approved": 3,
+        "REVISE|Rejected": 2
+      },
+      "mean_bids_near": 0.96,
+      "mean_inference_usd": 0.00063,
+      "claims": 58,
+      "claims_flagged": 0,
+      "sections_reassigned": 0,
+      "sections_reviewed": 40,
+      "order_agreement": 1.0
+    },
+    "onboarding-dao.sputnik-dao.near": {
+      "n": 35,
+      "approved": 35,
+      "rejected": 0,
+      "agreement": 0.6285714285714286,
+      "always_fund_baseline": 1.0,
+      "majority_baseline": 1.0,
+      "recall_approved": 0.6285714285714286,
+      "recall_rejected": null,
+      "balanced_accuracy": null,
+      "confusion": {
+        "DECLINE|Approved": 2,
+        "FUND|Approved": 22,
+        "REVISE|Approved": 11
+      },
+      "mean_bids_near": 1.0122857142857142,
+      "mean_inference_usd": 0.0006838857142857143,
+      "claims": 286,
+      "claims_flagged": 16,
+      "sections_reassigned": 16,
+      "sections_reviewed": 191,
+      "order_agreement": 1.0
+    },
+    "nearweek-news-contribution.sputnik-dao.near": {
+      "n": 12090,
+      "approved": 4907,
+      "rejected": 7183,
+      "agreement": 0.5959470636889992,
+      "always_fund_baseline": 0.40587262200165425,
+      "majority_baseline": 0.5941273779983457,
+      "recall_approved": 0.007540248624414102,
+      "recall_rejected": 0.9979117360434359,
+      "balanced_accuracy": 0.502725992333925,
+      "confusion": {
+        "DECLINE|Approved": 4857,
+        "DECLINE|Rejected": 7161,
+        "FUND|Approved": 37,
+        "FUND|Rejected": 15,
+        "REVISE|Approved": 13,
+        "REVISE|Rejected": 7
+      },
+      "mean_bids_near": 1.1033382961124898,
+      "mean_inference_usd": 0.0007550198511166253,
+      "claims": 135335,
+      "claims_flagged": 24084,
+      "sections_reassigned": 12073,
+      "sections_reviewed": 72523,
+      "order_agreement": 1.0
+    }
+  },
+  "excluded_statuses": {
+    "InProgress": 212,
+    "Expired": 1605
+  },
+  "runtime_s": 904.5,
+  "preregistration": {
+    "hash": "921b64c47ffa9898b2919c061cb1fab105fb292bc73788bf637becb805938a9a",
+    "registered_at": "2026-11-11T23:38:55Z",
+    "primary": "balanced_accuracy",
+    "value": 0.5050520769249508,
+    "ci95": [
+      0.5033389694749876,
+      0.5067387983653726
+    ],
+    "passed": true
+  }
+}
