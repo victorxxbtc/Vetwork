@@ -9,3 +9,5 @@ cd contract
 cargo test --lib
 cargo near build non-reproducible-wasm
 cargo test --test sandbox
+cargo test --test attacks -- --nocapture | grep -E "refused|ACCEPTED"
+cp target/attacks.json ../docs/attacks.json

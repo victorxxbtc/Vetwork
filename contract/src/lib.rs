@@ -9,6 +9,12 @@
 //! * The reviewer accepts or rejects each section. Accepted work is paid from escrow into the
 //!   agent's balance (raising its backers' share value); rejected work goes to the runner-up.
 //! * The memo hash is recorded against `<dao>#<proposal_id>`; unspent bounty returns to the poster.
+//! * Stake: each paid section locks a bond (= its price) from the agent's balance for a challenge
+//!   window. Anyone can challenge with a deposit; if the reviewer upholds it (the work contradicts
+//!   its cited source), the bond is slashed: half to the challenger, half to the job poster.
+//! * Reputation is a pure function of counters that only these methods change, and every change
+//!   is logged as EVENT_JSON, so anyone can recompute it from chain history.
+//! * Evaluations can be pre-registered: `preregister(hash)` records who and when, before the run.
 
 use near_sdk::json_types::U128;
 use near_sdk::store::{IterableMap, LookupMap};
@@ -19,6 +25,8 @@ const MIN_BOUNTY: u128 = 500_000_000_000_000_000_000_000; // 0.5 NEAR
 const MIN_AGENT_DEPOSIT: u128 = 1_000_000_000_000_000_000_000_000; // 1 NEAR
 const SUBACCOUNT_SEED: u128 = 50_000_000_000_000_000_000_000; // 0.05 NEAR, storage for the new account
 const BID_RESERVE: u128 = 10_000_000_000_000_000_000_000; // 0.01 NEAR: must be able to pay for a call
+const CHALLENGE_DEPOSIT: u128 = 100_000_000_000_000_000_000_000; // 0.1 NEAR, lost if the challenge fails
+pub const CHALLENGE_SECS: u64 = 3 * 86_400; // bonds stay locked for 3 days after payout
 
 #[derive(BorshStorageKey)]
 #[near]
@@ -28,6 +36,8 @@ enum Key {
     Shares,
     Commits,
     Memos,
+    Bonds,
+    PreRegs,
 }
 
 #[near(serializers = [borsh, json])]
@@ -77,6 +87,46 @@ pub struct Agent {
     pub total_shares: U128,
     pub earned: U128,
     pub spent_inference: U128,
+    /// part of `balance` held as bonds on recent paid work; cannot be withdrawn or spent
+    pub locked: U128,
+    pub slashed: U128,
+    pub accepted: u32,
+    pub rejected: u32,
+    pub slash_count: u32,
+}
+
+#[near(serializers = [borsh, json])]
+#[derive(Clone)]
+pub struct Bond {
+    pub agent: AccountId,
+    pub amount: U128,
+    pub until: u64,
+    /// open challenge: (challenger, claim index, reason)
+    pub challenge: Option<(AccountId, u32, String)>,
+    pub settled: bool,
+}
+
+#[near(serializers = [borsh, json])]
+#[derive(Clone)]
+pub struct PreReg {
+    pub by: AccountId,
+    pub at: u64,
+    pub note: String,
+}
+
+#[near(serializers = [json])]
+pub struct Reputation {
+    pub accepted: u32,
+    pub rejected: u32,
+    pub slashed: u32,
+    /// (accepted + 1) / (accepted + rejected + 3 * slashed + 2), in basis points
+    pub score_bp: u32,
+}
+
+pub fn reputation_bp(accepted: u32, rejected: u32, slashed: u32) -> u32 {
+    let num = (accepted as u64 + 1) * 10_000;
+    let den = accepted as u64 + rejected as u64 + 3 * slashed as u64 + 2;
+    (num / den) as u32
 }
 
 #[near(serializers = [borsh, json])]
@@ -110,6 +160,8 @@ pub struct Contract {
     shares: LookupMap<String, u128>,
     commits: LookupMap<String, Commit>,
     memos: LookupMap<String, MemoRecord>,
+    bonds: LookupMap<String, Bond>,
+    preregs: LookupMap<String, PreReg>,
 }
 
 pub fn hex(bytes: &[u8]) -> String {
@@ -133,6 +185,9 @@ fn share_key(agent: &AccountId, backer: &AccountId) -> String {
 fn commit_key(job: u64, section: &str, agent: &AccountId) -> String {
     format!("{job}|{section}|{agent}")
 }
+fn bond_key(job: u64, section: &str) -> String {
+    format!("{job}|{section}")
+}
 fn memo_key(dao: &AccountId, proposal_id: u64) -> String {
     format!("{dao}#{proposal_id}")
 }
@@ -152,6 +207,8 @@ impl Contract {
             shares: LookupMap::new(Key::Shares),
             commits: LookupMap::new(Key::Commits),
             memos: LookupMap::new(Key::Memos),
+            bonds: LookupMap::new(Key::Bonds),
+            preregs: LookupMap::new(Key::PreRegs),
         }
     }
 
@@ -226,6 +283,11 @@ impl Contract {
                 total_shares: U128(balance),
                 earned: U128(0),
                 spent_inference: U128(0),
+                locked: U128(0),
+                slashed: U128(0),
+                accepted: 0,
+                rejected: 0,
+                slash_count: 0,
             },
         );
         self.shares.insert(share_key(&account, &creator), balance);
@@ -263,6 +325,7 @@ impl Contract {
         require!(shares.0 > 0 && shares.0 <= held, "not enough shares");
         let a = self.agents.get_mut(&agent).expect("no such agent");
         let out = mul_div(shares.0, a.balance.0, a.total_shares.0);
+        require!(out <= a.balance.0 - a.locked.0, "funds are bonded on recent work; wait for the challenge window");
         a.balance.0 -= out;
         a.total_shares.0 -= shares.0;
         self.shares.insert(k, held - shares.0);
@@ -274,7 +337,7 @@ impl Contract {
     pub fn charge_inference(&mut self, agent: AccountId, amount: U128, job_id: u64) {
         require!(env::predecessor_account_id() == self.operator, "only operator");
         let a = self.agents.get_mut(&agent).expect("no such agent");
-        require!(amount.0 <= a.balance.0, "agent cannot pay for inference");
+        require!(amount.0 <= a.balance.0 - a.locked.0, "agent cannot pay for inference");
         a.balance.0 -= amount.0;
         a.spent_inference.0 += amount.0;
         Promise::new(self.operator.clone()).transfer(NearToken::from_yoctonear(amount.0)).detach();
@@ -288,7 +351,7 @@ impl Contract {
         require!(digest.len() == 64 && digest.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)), "digest must be sha256 hex");
         let a = self.agents.get(&agent).expect("no such agent");
         require!(a.section == section, "agent does not bid on this section");
-        require!(a.balance.0 >= BID_RESERVE, "agent balance below inference reserve");
+        require!(a.balance.0 - a.locked.0 >= BID_RESERVE, "agent balance below inference reserve");
         let job = self.jobs.get_mut(&job_id).expect("no such job");
         require!(env::block_timestamp() < job.commit_ends, "commit window closed");
         let s = job.sections.iter_mut().find(|s| s.name == section).expect("unknown section");
@@ -345,8 +408,14 @@ impl Contract {
         let job = self.jobs.get_mut(&job_id).expect("no such job");
         require!(job.status == JobStatus::Assigned, "job not assigned");
         let s = job.sections.iter_mut().find(|s| s.name == section).expect("unknown section");
+        let (loser, _) = s.ranked.get(s.winner_idx as usize).expect("no current winner").clone();
         s.winner_idx += 1;
-        s.ranked.get(s.winner_idx as usize).map(|(a, _)| a.clone())
+        let next = s.ranked.get(s.winner_idx as usize).map(|(a, _)| a.clone());
+        if let Some(a) = self.agents.get_mut(&loser) {
+            a.rejected += 1;
+        }
+        env::log_str(&format!("EVENT_JSON:{{\"event\":\"section_rejected\",\"job_id\":{job_id},\"section\":\"{section}\",\"agent\":\"{loser}\"}}"));
+        next
     }
 
     /// Reviewer only: pay accepted sections, refund the rest, record the memo hash.
@@ -358,6 +427,7 @@ impl Contract {
         let mut job = self.jobs.get(&job_id).expect("no such job").clone();
         require!(job.status == JobStatus::Assigned, "job not assigned");
         require!(accepted.len() == job.sections.len(), "one flag per section");
+        let until = env::block_timestamp() + CHALLENGE_SECS * 1_000_000_000;
         for (s, ok) in job.sections.iter().zip(accepted.iter()) {
             if !*ok {
                 continue;
@@ -367,7 +437,13 @@ impl Contract {
             let a = self.agents.get_mut(&agent).expect("agent");
             a.balance.0 += price.0;
             a.earned.0 += price.0;
-            env::log_str(&format!("EVENT_JSON:{{\"event\":\"payout\",\"job_id\":{job_id},\"agent\":\"{agent}\",\"amount\":\"{}\"}}", price.0));
+            a.locked.0 += price.0;
+            a.accepted += 1;
+            env::log_str(&format!("EVENT_JSON:{{\"event\":\"payout\",\"job_id\":{job_id},\"section\":\"{}\",\"agent\":\"{agent}\",\"amount\":\"{}\",\"bond_until\":{until}}}", s.name, price.0));
+            self.bonds.insert(
+                bond_key(job_id, &s.name),
+                Bond { agent: agent.clone(), amount: price, until, challenge: None, settled: false },
+            );
         }
         let refund = job.escrow.0;
         job.escrow = U128(0);
@@ -387,7 +463,91 @@ impl Contract {
         self.jobs.insert(job_id, job);
     }
 
+    // ------------------------------------------------------------ stake
+    /// Anyone, within the window: claim a paid section contradicts its cited source. Deposit 0.1 NEAR.
+    #[payable]
+    pub fn challenge(&mut self, job_id: u64, section: String, claim_index: u32, reason: String) {
+        require!(env::attached_deposit().as_yoctonear() == CHALLENGE_DEPOSIT, "attach exactly 0.1 NEAR");
+        require!(reason.len() <= 500, "reason too long");
+        let b = self.bonds.get_mut(&bond_key(job_id, &section)).expect("no bond for that section");
+        require!(!b.settled, "bond already settled");
+        require!(env::block_timestamp() < b.until, "challenge window closed");
+        require!(b.challenge.is_none(), "already challenged");
+        let who = env::predecessor_account_id();
+        b.challenge = Some((who.clone(), claim_index, reason));
+        env::log_str(&format!("EVENT_JSON:{{\"event\":\"challenged\",\"job_id\":{job_id},\"section\":\"{section}\",\"agent\":\"{}\",\"by\":\"{who}\",\"claim\":{claim_index}}}", b.agent));
+    }
+
+    /// Reviewer only: settle an open challenge. Upheld → the bond is slashed (half to the
+    /// challenger with their deposit back, half to the job poster). Dismissed → the deposit
+    /// goes to the agent and the bond stays locked until the window ends.
+    pub fn resolve_challenge(&mut self, job_id: u64, section: String, upheld: bool) {
+        require!(env::predecessor_account_id() == self.reviewer, "only reviewer");
+        let poster = self.jobs.get(&job_id).expect("no such job").poster.clone();
+        let k = bond_key(job_id, &section);
+        let mut b = self.bonds.get(&k).expect("no bond").clone();
+        let (challenger, _, _) = b.challenge.clone().expect("no open challenge");
+        require!(!b.settled, "bond already settled");
+        let a = self.agents.get_mut(&b.agent).expect("agent");
+        if upheld {
+            let amt = b.amount.0;
+            a.balance.0 -= amt;
+            a.locked.0 -= amt;
+            a.slashed.0 += amt;
+            a.slash_count += 1;
+            b.settled = true;
+            let half = amt / 2;
+            Promise::new(challenger.clone()).transfer(NearToken::from_yoctonear(half + CHALLENGE_DEPOSIT)).detach();
+            Promise::new(poster).transfer(NearToken::from_yoctonear(amt - half)).detach();
+            env::log_str(&format!("EVENT_JSON:{{\"event\":\"slashed\",\"job_id\":{job_id},\"section\":\"{section}\",\"agent\":\"{}\",\"amount\":\"{amt}\"}}", b.agent));
+        } else {
+            a.balance.0 += CHALLENGE_DEPOSIT;
+            b.challenge = None;
+            env::log_str(&format!("EVENT_JSON:{{\"event\":\"challenge_dismissed\",\"job_id\":{job_id},\"section\":\"{section}\",\"agent\":\"{}\",\"by\":\"{challenger}\"}}", b.agent));
+        }
+        self.bonds.insert(k, b);
+    }
+
+    /// Anyone, after the window with no open challenge: unlock the bond.
+    pub fn release_bond(&mut self, job_id: u64, section: String) {
+        let k = bond_key(job_id, &section);
+        let mut b = self.bonds.get(&k).expect("no bond").clone();
+        require!(!b.settled, "bond already settled");
+        require!(b.challenge.is_none(), "challenge pending");
+        require!(env::block_timestamp() >= b.until, "challenge window still open");
+        let a = self.agents.get_mut(&b.agent).expect("agent");
+        a.locked.0 -= b.amount.0;
+        b.settled = true;
+        self.bonds.insert(k, b);
+    }
+
+    // ------------------------------------------------------------ pre-registration
+    /// Record an evaluation's pre-registration hash (sha256 hex) with its time, before the run.
+    pub fn preregister(&mut self, hash: String, note: String) {
+        require!(hash.len() == 64 && hash.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)), "hash must be sha256 hex");
+        require!(note.len() <= 300, "note too long");
+        require!(!self.preregs.contains_key(&hash), "already registered");
+        let by = env::predecessor_account_id();
+        let at = env::block_timestamp();
+        self.preregs.insert(hash.clone(), PreReg { by: by.clone(), at, note });
+        env::log_str(&format!("EVENT_JSON:{{\"event\":\"preregistered\",\"hash\":\"{hash}\",\"by\":\"{by}\",\"at\":{at}}}"));
+    }
+
     // ------------------------------------------------------------ views
+    pub fn get_preregistration(&self, hash: String) -> Option<PreReg> {
+        self.preregs.get(&hash).cloned()
+    }
+    pub fn get_bond(&self, job_id: u64, section: String) -> Option<Bond> {
+        self.bonds.get(&bond_key(job_id, &section)).cloned()
+    }
+    pub fn get_reputation(&self, agent: AccountId) -> Option<Reputation> {
+        self.agents.get(&agent).map(|a| Reputation {
+            accepted: a.accepted,
+            rejected: a.rejected,
+            slashed: a.slash_count,
+            score_bp: reputation_bp(a.accepted, a.rejected, a.slash_count),
+        })
+    }
     pub fn get_job(&self, job_id: u64) -> Option<Job> {
         self.jobs.get(&job_id).cloned()
     }

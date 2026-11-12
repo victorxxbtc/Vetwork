@@ -185,3 +185,90 @@ fn mul_div_is_exact_beyond_u128() {
     assert_eq!(crate::mul_div(u128::MAX, u128::MAX, u128::MAX), u128::MAX);
     assert_eq!(crate::mul_div(7, 9, 4), 15);
 }
+
+fn reviewed_job(c: &mut Contract) -> u64 {
+    let id = full_job(c);
+    ctx("reviewer.testnet", 0, 140 * SEC);
+    c.reassign(id, "history".into());
+    c.submit_review(id, "b".repeat(64), vec![true, true, false, false, false], 72, "FUND".into());
+    id
+}
+
+#[test]
+fn paid_work_is_bonded_and_counts_toward_reputation() {
+    let mut c = setup();
+    let id = reviewed_job(&mut c);
+    let l = c.get_agent(agent("ledger")).unwrap();
+    assert_eq!(l.locked.0, 3 * N / 10);
+    let b = c.get_bond(id, "history".into()).unwrap();
+    assert_eq!(b.agent, agent("ledger"));
+    assert_eq!(b.until, 140 * SEC + CHALLENGE_SECS * SEC);
+    let r = c.get_reputation(agent("ledger")).unwrap();
+    assert_eq!((r.accepted, r.rejected, r.slashed), (1, 0, 0));
+    let q = c.get_reputation(agent("quickcheck")).unwrap();
+    assert_eq!((q.accepted, q.rejected), (0, 1));
+    assert_eq!(r.score_bp, reputation_bp(1, 0, 0));
+    assert_eq!(reputation_bp(1, 0, 0), 6666);
+    assert_eq!(reputation_bp(0, 1, 0), 3333);
+}
+
+#[test]
+fn upheld_challenge_slashes_the_bond() {
+    let mut c = setup();
+    let id = reviewed_job(&mut c);
+    let before = c.get_agent(agent("ledger")).unwrap();
+    ctx("watcher.testnet", CHALLENGE_DEPOSIT, 200 * SEC);
+    c.challenge(id, "history".into(), 0, "count contradicts the cited proposals".into());
+    ctx("reviewer.testnet", 0, 300 * SEC);
+    c.resolve_challenge(id, "history".into(), true);
+    let a = c.get_agent(agent("ledger")).unwrap();
+    assert_eq!(a.balance.0, before.balance.0 - 3 * N / 10);
+    assert_eq!(a.locked.0, 0);
+    assert_eq!(a.slashed.0, 3 * N / 10);
+    let r = c.get_reputation(agent("ledger")).unwrap();
+    assert_eq!((r.accepted, r.slashed), (1, 1));
+    assert!(c.get_bond(id, "history".into()).unwrap().settled);
+}
+
+#[test]
+fn dismissed_challenge_pays_the_agent_and_bond_releases_later() {
+    let mut c = setup();
+    let id = reviewed_job(&mut c);
+    let before = c.get_agent(agent("ledger")).unwrap().balance.0;
+    ctx("watcher.testnet", CHALLENGE_DEPOSIT, 200 * SEC);
+    c.challenge(id, "history".into(), 0, "wrong".into());
+    ctx("reviewer.testnet", 0, 300 * SEC);
+    c.resolve_challenge(id, "history".into(), false);
+    assert_eq!(c.get_agent(agent("ledger")).unwrap().balance.0, before + CHALLENGE_DEPOSIT);
+    ctx("anyone.testnet", 0, 141 * SEC + CHALLENGE_SECS * SEC);
+    c.release_bond(id, "history".into());
+    assert_eq!(c.get_agent(agent("ledger")).unwrap().locked.0, 0);
+}
+
+#[test]
+#[should_panic(expected = "funds are bonded")]
+fn bonded_funds_cannot_be_withdrawn() {
+    let mut c = setup();
+    reviewed_job(&mut c);
+    let shares = c.get_shares(agent("ledger"), acc("backer.testnet"));
+    ctx("backer.testnet", 0, 200 * SEC);
+    c.withdraw_backing(agent("ledger"), shares);
+}
+
+#[test]
+#[should_panic(expected = "challenge window closed")]
+fn challenges_close_with_the_window() {
+    let mut c = setup();
+    let id = reviewed_job(&mut c);
+    ctx("watcher.testnet", CHALLENGE_DEPOSIT, 141 * SEC + CHALLENGE_SECS * SEC);
+    c.challenge(id, "history".into(), 0, "late".into());
+}
+
+#[test]
+fn preregistration_records_who_and_when() {
+    let mut c = setup();
+    ctx("lead.testnet", 0, 42 * SEC);
+    c.preregister("c".repeat(64), "pinned set".into());
+    let p = c.get_preregistration("c".repeat(64)).unwrap();
+    assert_eq!((p.by, p.at), (acc("lead.testnet"), 42 * SEC));
+}

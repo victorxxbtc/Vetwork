@@ -1,0 +1,127 @@
+{
+  "refused": 20,
+  "total": 20,
+  "sandbox": "near-workspaces 0.24, local neard",
+  "attacks": [
+    {
+      "attack": "Take over an existing agent",
+      "how": "register_agent with a name already in use",
+      "refused": true,
+      "answer": "agent exists"
+    },
+    {
+      "attack": "Post a job with a dust bounty",
+      "how": "post_job with 0.01 NEAR",
+      "refused": true,
+      "answer": "bounty must be at least 0.5 NEAR"
+    },
+    {
+      "attack": "Bid in someone else's name",
+      "how": "mallory calls commit_bid for ledger",
+      "refused": true,
+      "answer": "only the agent or operator"
+    },
+    {
+      "attack": "Unfunded agent bids",
+      "how": "agent balance drained below the 0.01 NEAR inference reserve, then commit_bid",
+      "refused": true,
+      "answer": "agent balance below inference reserve"
+    },
+    {
+      "attack": "Reveal early to signal a price",
+      "how": "reveal_bid during the commit window",
+      "refused": true,
+      "answer": "not in reveal window"
+    },
+    {
+      "attack": "Drain an agent through fake inference bills",
+      "how": "mallory calls charge_inference",
+      "refused": true,
+      "answer": "only operator"
+    },
+    {
+      "attack": "Late bid",
+      "how": "commit_bid after the commit window",
+      "refused": true,
+      "answer": "commit window closed"
+    },
+    {
+      "attack": "Change the price after sealing",
+      "how": "reveal_bid with a lower price than committed",
+      "refused": true,
+      "answer": "reveal does not match the commitment; bid not counted"
+    },
+    {
+      "attack": "Reveal with a guessed salt",
+      "how": "reveal_bid with the right price and a wrong salt",
+      "refused": true,
+      "answer": "reveal does not match the commitment; bid not counted"
+    },
+    {
+      "attack": "Reveal twice",
+      "how": "second reveal_bid for the same commitment",
+      "refused": true,
+      "answer": "already revealed"
+    },
+    {
+      "attack": "Close the auction early",
+      "how": "close_auction during the reveal window",
+      "refused": true,
+      "answer": "reveal window still open"
+    },
+    {
+      "attack": "Fake reviewer approves",
+      "how": "mallory calls submit_review",
+      "refused": true,
+      "answer": "only reviewer"
+    },
+    {
+      "attack": "Fake reviewer rejects a winner",
+      "how": "mallory calls reassign",
+      "refused": true,
+      "answer": "only reviewer"
+    },
+    {
+      "attack": "Double payout",
+      "how": "reviewer submits the same review twice",
+      "refused": true,
+      "answer": "job not assigned"
+    },
+    {
+      "attack": "Run with the bond",
+      "how": "withdraw_backing of all shares while the bond is locked",
+      "refused": true,
+      "answer": "funds are bonded on recent work; wait for the challenge window"
+    },
+    {
+      "attack": "Withdraw another backer's money",
+      "how": "mallory calls withdraw_backing with no shares",
+      "refused": true,
+      "answer": "not enough shares"
+    },
+    {
+      "attack": "Challenge without a deposit",
+      "how": "challenge with no NEAR attached",
+      "refused": true,
+      "answer": "attach exactly 0.1 NEAR"
+    },
+    {
+      "attack": "Challenger slashes the agent itself",
+      "how": "mallory calls resolve_challenge on her own challenge",
+      "refused": true,
+      "answer": "only reviewer"
+    },
+    {
+      "attack": "Release a challenged bond",
+      "how": "release_bond while a challenge is open",
+      "refused": true,
+      "answer": "challenge pending"
+    },
+    {
+      "attack": "Overwrite a pre-registration",
+      "how": "preregister an existing hash",
+      "refused": true,
+      "answer": "already registered"
+    }
+  ]
+}
