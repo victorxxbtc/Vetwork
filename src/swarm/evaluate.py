@@ -74,7 +74,14 @@ def _metrics(rows: list[dict[str, Any]]) -> dict[str, Any]:
 def run(split: str = "test", limit: int | None = None, write: bool = True, progress: bool = True) -> dict[str, Any]:
     cfg = load_config()
     decimals = load_decimals()
-    daos = cfg["splits"][split]
+    prereg = None
+    if split == "prereg":
+        from .prereg import verify
+
+        prereg = verify()  # raises if the proposal set, method or metric changed since registration
+        daos = prereg["body"]["daos"]
+    else:
+        daos = cfg["splits"][split]
     swarm = Swarm.seeded()
     rows: list[dict[str, Any]] = []
     excluded: Counter[str] = Counter()
@@ -129,6 +136,16 @@ def run(split: str = "test", limit: int | None = None, write: bool = True, progr
         "excluded_statuses": dict(excluded),
         "runtime_s": round(time.time() - t0, 1),
     }
+    if prereg is not None:
+        from .prereg import bootstrap_ci
+
+        lo, hi = bootstrap_ci(rows)
+        bal = out["overall"].get("balanced_accuracy")
+        out["preregistration"] = {
+            "hash": prereg["hash"], "registered_at": prereg["registered_at"],
+            "primary": "balanced_accuracy", "value": bal, "ci95": [lo, hi],
+            "passed": bool(bal is not None and bal > 0.5 and lo > 0.5),
+        }
     if write:
         RESULTS.mkdir(parents=True, exist_ok=True)
         (RESULTS / f"{split}.json").write_text(json.dumps(out, indent=2))

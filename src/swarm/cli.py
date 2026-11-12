@@ -22,6 +22,14 @@ def _table(o: dict) -> str:
             f"{m['mean_bids_near']:.2f} NEAR bids + ${m['mean_inference_usd']:.4f} est. inference | "
             f"{m['claims_flagged']:,} of {m['claims']:,} |"
         )
+    oa = o["overall"].get("order_agreement")
+    if oa is not None:
+        lines.append(f"\nBlind reviewer, two orders: verdicts identical on {pct(oa)} of {o['overall']['sections_reviewed']:,} section reviews.")
+    pr = o.get("preregistration")
+    if pr:
+        lo, hi = pr["ci95"]
+        lines.append(f"Pre-registered {pr['registered_at']} (hash {pr['hash'][:16]}…): balanced accuracy {pct(pr['value'])}, "
+                     f"95% CI {pct(lo)}–{pct(hi)} → {'PASS' if pr['passed'] else 'FAIL'} against the pre-registered criterion.")
     return "\n".join(lines)
 
 
@@ -32,8 +40,11 @@ def main(argv: list[str] | None = None) -> None:
     d.add_argument("--port", type=int, default=int(os.environ.get("PORT", 8000)))
     d.add_argument("--host", default=os.environ.get("HOST", "127.0.0.1"))
     e = sub.add_parser("eval", help="run the swarm over decided proposals")
-    e.add_argument("--split", default="test", choices=["dev", "test"])
+    e.add_argument("--split", default="test", choices=["dev", "test", "prereg"])
     e.add_argument("--limit", type=int, default=None, help="only the last N decided proposals per DAO")
+    pr = sub.add_parser("prereg", help="pin DAOs, method and metric; write evals/preregistration.json and print its hash")
+    pr.add_argument("daos", nargs="+")
+    pr.add_argument("--note", default="")
     f = sub.add_parser("fetch", help="re-download proposals from mainnet RPC (read-only)")
     f.add_argument("daos", nargs="*")
     r = sub.add_parser("review", help="print one memo as JSON")
@@ -52,6 +63,11 @@ def main(argv: list[str] | None = None) -> None:
         print(md)
         if a.limit is None:
             (RESULTS / f"{a.split}.md").write_text(md + "\n")
+    elif a.cmd == "prereg":
+        from .prereg import PREREG, write
+
+        doc = write(a.daos, a.note)
+        print(f"pre-registered {len(a.daos)} DAOs at {doc['registered_at']}\nhash {doc['hash']}\n-> {PREREG}")
     elif a.cmd == "fetch":
         from pathlib import Path
 
