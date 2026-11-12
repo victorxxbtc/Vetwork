@@ -64,7 +64,7 @@ async fn reputation_recomputes_from_event_log() -> anyhow::Result<()> {
     let j1 = job(&w, &mut ev, 1, &bids, true).await?;
     let r = w.backer.call(w.c.id(), "challenge")
         .args_json(json!({"job_id": j1, "section": "history", "claim_index": 0, "reason": "count contradicts cited proposals"}))
-        .deposit(NearToken::from_millinear(100)).transact().await?;
+        .deposit(NearToken::from_yoctonear(N / 10)).transact().await?;
     logs(r, &mut ev)?.into_result()?;
     let r = w.reviewer.call(w.c.id(), "resolve_challenge").args_json(json!({"job_id": j1, "section": "history", "upheld": true})).transact().await?;
     logs(r, &mut ev)?.into_result()?;

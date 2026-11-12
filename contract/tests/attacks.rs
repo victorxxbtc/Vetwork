@@ -49,7 +49,7 @@ async fn try_to_break_it() -> anyhow::Result<()> {
     // 2. bounty below the minimum
     let r = w.dao.call(w.c.id(), "post_job")
         .args_json(json!({"dao": "marketing.sputnik-dao.near", "proposal_id": 1, "description": "x", "commit_secs": 3, "reveal_secs": 30}))
-        .deposit(NearToken::from_millinear(10)).transact().await?;
+        .deposit(NearToken::from_yoctonear(N / 100)).transact().await?;
     log.refused("Post a job with a dust bounty", "post_job with 0.01 NEAR", r);
 
     let job_id: u64 = w.dao.call(w.c.id(), "post_job")
@@ -168,7 +168,7 @@ async fn try_to_break_it() -> anyhow::Result<()> {
     // 18. challenger settles their own challenge
     mallory.call(w.c.id(), "challenge")
         .args_json(json!({"job_id": job_id, "section": "history", "claim_index": 0, "reason": "contradicts source"}))
-        .deposit(NearToken::from_millinear(100)).transact().await?.into_result()?;
+        .deposit(NearToken::from_yoctonear(N / 10)).transact().await?.into_result()?;
     let r = mallory.call(w.c.id(), "resolve_challenge")
         .args_json(json!({"job_id": job_id, "section": "history", "upheld": true})).transact().await?;
     log.refused("Challenger slashes the agent itself", "mallory calls resolve_challenge on her own challenge", r);
