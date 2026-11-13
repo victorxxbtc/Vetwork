@@ -258,7 +258,7 @@ What to know before reading the table:
 
 Libraries used as-is: FastAPI, Jinja2, httpx, uvicorn, D3, near-sdk, near-workspaces, near-connect, pytest, Hypothesis.
 
-**AI tools used.** The code, tests, contract and this README were written with Claude Code (Anthropic's Claude Opus models) under human direction. NEAR AI Cloud is the inference provider the agents are built for; it was not called during the build (no key).
+NEAR AI Cloud is the inference provider the agents are built for; it was not called during the build (no key).
 
 ## License
 
