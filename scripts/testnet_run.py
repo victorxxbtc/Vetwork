@@ -36,7 +36,7 @@ OPERATOR = f"operator.{MASTER}"
 DAO, PROPOSAL = "marketing.sputnik-dao.near", 1005
 AGENTS = ["ledger", "quickcheck", "comparables"]  # two bid on history, one on budget
 BOUNTY = 1.5
-COMMIT_SECS = REVEAL_SECS = 90
+COMMIT_SECS = REVEAL_SECS = 300  # job #1 used 90 s and an RPC rate limit made it miss the reveal window
 LOG = ROOT / "docs" / "testnet-run.json"
 WASM = ROOT / "contract" / "target" / "near" / "vetwork_swarm.wasm"
 
@@ -62,8 +62,8 @@ def near_cli(*args: str, ok_fail: bool = False) -> tuple[str | None, str]:
         tx = re.search(r"Transaction ID:\s*([1-9A-HJ-NP-Za-km-z]{43,44})", out)
         if p.returncode == 0 or ok_fail:
             return (tx.group(1) if tx else None), out
-        if "timeout" in out.lower() or "connect" in out.lower():
-            time.sleep(5)
+        if any(k in out.lower() for k in ("timeout", "connect", "rate limit", "too many requests")):
+            time.sleep(6 + attempt * 6)
             continue
         break
     raise RuntimeError(f"{' '.join(cmd[:6])}… failed:\n{out[-1500:]}")
@@ -80,7 +80,7 @@ def view(method: str, args: dict):
 
     body = {"jsonrpc": "2.0", "id": 1, "method": "query", "params": {"request_type": "call_function", "finality": "final",
             "account_id": SWARM, "method_name": method, "args_base64": __import__("base64").b64encode(json.dumps(args).encode()).decode()}}
-    req = urllib.request.Request("https://rpc.testnet.near.org", json.dumps(body).encode(), {"content-type": "application/json"})
+    req = urllib.request.Request(os.environ.get("TESTNET_RPC_URL", "https://rpc.testnet.near.org"), json.dumps(body).encode(), {"content-type": "application/json"})
     r = json.loads(urllib.request.urlopen(req, timeout=30).read())
     return json.loads(bytes(r["result"]["result"]))
 
@@ -187,6 +187,20 @@ def challenge() -> None:
     record("DRILL: reviewer upholds; bond slashed, half to challenger, half to the job poster", tx)
 
 
+def abort(job_id: int = 1) -> None:
+    """Close a job whose reveal window was missed: nothing accepted, the whole bounty goes back."""
+    import hashlib
+
+    tx, _ = call(MASTER, "close_auction", {"job_id": job_id})
+    record(f"job #{job_id}: close auction (only 1 of 3 bids was revealed before an RPC rate limit; window missed)", tx)
+    h = hashlib.sha256(f"vetwork job {job_id} aborted: reveal window missed".encode()).hexdigest()
+    tx, _ = call(REVIEWER, "submit_review", {"job_id": job_id, "memo_hash": h, "accepted": [False] * 5, "score": 0, "verdict": "REVISE"}, gas="150 Tgas")
+    record(f"job #{job_id}: aborted by the reviewer, no section accepted, full 1.5 NEAR bounty refunded (placeholder memo, superseded by job #2)", tx)
+    d = log()
+    d["aborted_job"] = {"job_id": job_id, "why": "RPC rate limit during the 90 s reveal window; 1 of 3 bids revealed", "placeholder_memo_hash": h}
+    LOG.write_text(json.dumps(d, indent=2) + "\n")
+
+
 def prereg() -> None:
     h = json.loads((ROOT / "evals" / "preregistration.json").read_text())["hash"]
     tx, _ = call(MASTER, "preregister", {"hash": h, "note": "Vetwork held-out evaluation, committed in git 590a110 before the run"}, gas="10 Tgas")
@@ -194,4 +208,4 @@ def prereg() -> None:
 
 
 if __name__ == "__main__":
-    {"setup": setup, "job": job, "challenge": challenge, "prereg": prereg}[sys.argv[1]]()
+    {"setup": setup, "job": job, "abort": abort, "challenge": challenge, "prereg": prereg}[sys.argv[1]]()

@@ -21,6 +21,70 @@
       "step": "deploy + init (owner, reviewer, operator)",
       "tx": "7GRW2WzfKca29iQ3bDVQqmFXmVZJdo4MBA5rroQ6VXku",
       "url": "https://testnet.nearblocks.io/txns/7GRW2WzfKca29iQ3bDVQqmFXmVZJdo4MBA5rroQ6VXku"
+    },
+    {
+      "step": "register agent ledger.swarm.vetwork-hk1113.testnet (1 NEAR deposit, sub-account created)",
+      "tx": "62qcCnfUcwf9sdM5YYbTST4qj8t4PkheMfnPVtmQaoR3",
+      "url": "https://testnet.nearblocks.io/txns/62qcCnfUcwf9sdM5YYbTST4qj8t4PkheMfnPVtmQaoR3"
+    },
+    {
+      "step": "register agent quickcheck.swarm.vetwork-hk1113.testnet (1 NEAR deposit, sub-account created)",
+      "tx": "DqpigoqdeaHZi727cKw16kKecwA7EhFoUUhc96r5by3Z",
+      "url": "https://testnet.nearblocks.io/txns/DqpigoqdeaHZi727cKw16kKecwA7EhFoUUhc96r5by3Z"
+    },
+    {
+      "step": "register agent comparables.swarm.vetwork-hk1113.testnet (1 NEAR deposit, sub-account created)",
+      "tx": "Bgf8WTowpiVzRSJTzteV3GTgXbsH6FtJHAAzoqX2LPGz",
+      "url": "https://testnet.nearblocks.io/txns/Bgf8WTowpiVzRSJTzteV3GTgXbsH6FtJHAAzoqX2LPGz"
+    },
+    {
+      "step": "post job #1: marketing.sputnik-dao.near#1005, 1.5 NEAR bounty in escrow",
+      "tx": "4vr5noqCkN6dwm465v7NmSFonUN6jDga8MbqxiBtnhV5",
+      "url": "https://testnet.nearblocks.io/txns/4vr5noqCkN6dwm465v7NmSFonUN6jDga8MbqxiBtnhV5",
+      "job_id": 1
+    },
+    {
+      "step": "sealed bid: ledger on history",
+      "tx": "8H27ZpnGJPERut42KEtLWbpyubWed7wrW5ygQYkKCUam",
+      "url": "https://testnet.nearblocks.io/txns/8H27ZpnGJPERut42KEtLWbpyubWed7wrW5ygQYkKCUam"
+    },
+    {
+      "step": "sealed bid: quickcheck on history",
+      "tx": "DkKzEU6aS3FejNwUsizCPo3UVKgihqnkx6jLNGsMWYKh",
+      "url": "https://testnet.nearblocks.io/txns/DkKzEU6aS3FejNwUsizCPo3UVKgihqnkx6jLNGsMWYKh"
+    },
+    {
+      "step": "sealed bid: comparables on budget",
+      "tx": "3B1TQ1CXiiEnbhuE2Y36vhfBLdefwssdhgSUtFhSGcRU",
+      "url": "https://testnet.nearblocks.io/txns/3B1TQ1CXiiEnbhuE2Y36vhfBLdefwssdhgSUtFhSGcRU"
+    },
+    {
+      "step": "reveal: ledger 0.2700 NEAR",
+      "tx": "FPnYdQ5QLFkZQR4jFx3CUb7Ycm867dvCWhzEkir94n44",
+      "url": "https://testnet.nearblocks.io/txns/FPnYdQ5QLFkZQR4jFx3CUb7Ycm867dvCWhzEkir94n44"
+    },
+    {
+      "step": "job #1: close auction (only 1 of 3 bids was revealed before an RPC rate limit; window missed)",
+      "tx": "AbpYuRaeRpK4XfcHAmUcmQMkcrMnVvstFN8ZSZt52JgR",
+      "url": "https://testnet.nearblocks.io/txns/AbpYuRaeRpK4XfcHAmUcmQMkcrMnVvstFN8ZSZt52JgR"
+    },
+    {
+      "step": "job #1: aborted by the reviewer, no section accepted, full 1.5 NEAR bounty refunded (placeholder memo, superseded by job #2)",
+      "tx": "8xQdGYBwkP9LySQDvWpqhTFk1C4pJoLFcdKdLM66ZRnn",
+      "url": "https://testnet.nearblocks.io/txns/8xQdGYBwkP9LySQDvWpqhTFk1C4pJoLFcdKdLM66ZRnn"
     }
-  ]
+  ],
+  "job": {
+    "job_id": 1,
+    "dao": "marketing.sputnik-dao.near",
+    "proposal_id": 1005,
+    "memo_hash": "9e307b538123b78b0014621e5824534952961fc8bb3a32c4b1ad95b1e93de87a",
+    "verdict": "FUND",
+    "score": 88
+  },
+  "aborted_job": {
+    "job_id": 1,
+    "why": "RPC rate limit during the 90 s reveal window; 1 of 3 bids revealed",
+    "placeholder_memo_hash": "15aea8ba9a0bbc75403b6c2966777829dd4f5f0b9baec35cafe3b615d0d86243"
+  }
 }
