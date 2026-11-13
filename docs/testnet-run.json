@@ -72,13 +72,79 @@
       "step": "job #1: aborted by the reviewer, no section accepted, full 1.5 NEAR bounty refunded (placeholder memo, superseded by job #2)",
       "tx": "8xQdGYBwkP9LySQDvWpqhTFk1C4pJoLFcdKdLM66ZRnn",
       "url": "https://testnet.nearblocks.io/txns/8xQdGYBwkP9LySQDvWpqhTFk1C4pJoLFcdKdLM66ZRnn"
+    },
+    {
+      "step": "post job #2: marketing.sputnik-dao.near#1005, 1.5 NEAR bounty in escrow",
+      "tx": "3qEtypEfsXnY8kkT9E9ZuDuBHoNoi2LwrvDoxXszvvRq",
+      "url": "https://testnet.nearblocks.io/txns/3qEtypEfsXnY8kkT9E9ZuDuBHoNoi2LwrvDoxXszvvRq",
+      "job_id": 2
+    },
+    {
+      "step": "sealed bid: ledger on history",
+      "tx": "DBX4Cc3sn32PxwtpyD3uFTb9VLeXvxJvgHB6XuNXwJUb",
+      "url": "https://testnet.nearblocks.io/txns/DBX4Cc3sn32PxwtpyD3uFTb9VLeXvxJvgHB6XuNXwJUb"
+    },
+    {
+      "step": "sealed bid: quickcheck on history",
+      "tx": "8NAP7a3ZMkBPSuKgXD6wB4sxyFEsXzLAEFcwQZ2EsAPH",
+      "url": "https://testnet.nearblocks.io/txns/8NAP7a3ZMkBPSuKgXD6wB4sxyFEsXzLAEFcwQZ2EsAPH"
+    },
+    {
+      "step": "sealed bid: comparables on budget",
+      "tx": "6BDebqSXaVc1R3FQZ87R11qSM16wJL75vWa3kKsvwypv",
+      "url": "https://testnet.nearblocks.io/txns/6BDebqSXaVc1R3FQZ87R11qSM16wJL75vWa3kKsvwypv"
+    },
+    {
+      "step": "reveal: ledger 0.2600 NEAR",
+      "tx": "547GCkXnpfxWAtMwtpYSvqbSCYrKdVfcCrDyCP72DKNh",
+      "url": "https://testnet.nearblocks.io/txns/547GCkXnpfxWAtMwtpYSvqbSCYrKdVfcCrDyCP72DKNh"
+    },
+    {
+      "step": "reveal: quickcheck 0.1700 NEAR",
+      "tx": "73WkctbXueKjtDq6hhtjUHZBuPMRsWecRFJQ1X191nu9",
+      "url": "https://testnet.nearblocks.io/txns/73WkctbXueKjtDq6hhtjUHZBuPMRsWecRFJQ1X191nu9"
+    },
+    {
+      "step": "reveal: comparables 0.2300 NEAR",
+      "tx": "AgEpjp2SJ38McrEJMFobcwjoNUoBis5uHX2JTpcPSSUh",
+      "url": "https://testnet.nearblocks.io/txns/AgEpjp2SJ38McrEJMFobcwjoNUoBis5uHX2JTpcPSSUh"
+    },
+    {
+      "step": "close auction (lowest price per section wins)",
+      "tx": "4WRkmco8aWtSiCS54UuetCfPv4jWXVktPZv5HCma2JHh",
+      "url": "https://testnet.nearblocks.io/txns/4WRkmco8aWtSiCS54UuetCfPv4jWXVktPZv5HCma2JHh"
+    },
+    {
+      "step": "inference charged to quickcheck (est., no LLM key)",
+      "tx": "DBe9FzST81ViwQ6Es7RGDhhJRcMZbkNtc8v4eDHHzQC9",
+      "url": "https://testnet.nearblocks.io/txns/DBe9FzST81ViwQ6Es7RGDhhJRcMZbkNtc8v4eDHHzQC9"
+    },
+    {
+      "step": "reviewer rejects quickcheck on history: sputnik:marketing.sputnik-dao.near#1021 did not exist at submission time",
+      "tx": "FUB5S218HSf9oivVrg6enmv1wxBGf5mZ56dSs8kH4Lhb",
+      "url": "https://testnet.nearblocks.io/txns/FUB5S218HSf9oivVrg6enmv1wxBGf5mZ56dSs8kH4Lhb"
+    },
+    {
+      "step": "inference charged to ledger (est., no LLM key)",
+      "tx": "9sUy1YJinstYbAVsP3ZAJvmV8e5RDUwMdprGbduD8hDu",
+      "url": "https://testnet.nearblocks.io/txns/9sUy1YJinstYbAVsP3ZAJvmV8e5RDUwMdprGbduD8hDu"
+    },
+    {
+      "step": "inference charged to comparables (est., no LLM key)",
+      "tx": "HciukN5dZwdhRs3HDBK7sJGcJSH1K8MQ3uFo1ESeW2s",
+      "url": "https://testnet.nearblocks.io/txns/HciukN5dZwdhRs3HDBK7sJGcJSH1K8MQ3uFo1ESeW2s"
+    },
+    {
+      "step": "review submitted: FUND 88/100, 2 sections paid, memo hash recorded, rest refunded",
+      "tx": "9BCxubQiqCqNrFPdmHQhjQaUnuEMWdmf9ZJeQSQ9PEtQ",
+      "url": "https://testnet.nearblocks.io/txns/9BCxubQiqCqNrFPdmHQhjQaUnuEMWdmf9ZJeQSQ9PEtQ"
     }
   ],
   "job": {
-    "job_id": 1,
+    "job_id": 2,
     "dao": "marketing.sputnik-dao.near",
     "proposal_id": 1005,
-    "memo_hash": "9e307b538123b78b0014621e5824534952961fc8bb3a32c4b1ad95b1e93de87a",
+    "memo_hash": "1a17b18fdd56bebec86b4375d609227d0011b1ea53ddfb4b7911123a4a9cf9aa",
     "verdict": "FUND",
     "score": 88
   },
