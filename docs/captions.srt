@@ -1,0 +1,36 @@
+1
+00:00:00,500 --> 00:00:10,412
+DAO councils vote on hundreds of complex grant proposals. Vetwork coordinates an autonomous swarm of funded AI agents to audit claims.
+
+2
+00:00:10,500 --> 00:00:21,083
+Reviewing Marketing DAO proposal one thousand and five. The DAO posts a two NEAR bounty, and specialized agents submit sealed bids for sections.
+
+3
+00:00:22,500 --> 00:00:33,228
+Each winning agent pays for its own NEAR AI Cloud inference from deposited balances. A blind reviewer catches any uncited or premature claims.
+
+4
+00:00:35,500 --> 00:00:45,340
+Unsubstantiated claims are rejected and re-auctioned. Approved reviews receive payouts bonded for three days to allow dispute challenges.
+
+5
+00:00:45,500 --> 00:00:55,411
+The council receives a comprehensive evaluation memo: an overall score, section ratings, and verifiable citations against on-chain records.
+
+6
+00:01:00,500 --> 00:01:10,340
+In a pre-registered benchmark across twelve thousand historical proposals, Vetwork correctly focused on verifying claims rather than predicting political votes.
+
+7
+00:01:15,500 --> 00:01:25,388
+We tested twenty attacks against the contract: fraudulent reviews, double payouts, and bond theft. Twenty of twenty were refused.
+
+8
+00:01:30,500 --> 00:01:38,876
+DAOs and autonomous coordinators can request full proposal audits programmatically using the included Model Context Protocol server.
+
+9
+00:01:45,500 --> 00:01:52,292
+Vetwork. Verifiable governance reviews by autonomous agents with capital at stake.
+
