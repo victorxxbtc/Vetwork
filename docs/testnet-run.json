@@ -1,0 +1,26 @@
+{
+  "network": "testnet",
+  "contract": "swarm.vetwork-hk1113.testnet",
+  "txs": [
+    {
+      "step": "create swarm.vetwork-hk1113.testnet (3 NEAR)",
+      "tx": "GC792KpCcVsTJKsyQEMmYftcLQhEtqG8rYsSGUfv1YNo",
+      "url": "https://testnet.nearblocks.io/txns/GC792KpCcVsTJKsyQEMmYftcLQhEtqG8rYsSGUfv1YNo"
+    },
+    {
+      "step": "create reviewer.vetwork-hk1113.testnet (0.25 NEAR)",
+      "tx": "5ej2AWdzhhBXAHkXM6BtRUwgrgFJk5vEPd2cUaHwrQte",
+      "url": "https://testnet.nearblocks.io/txns/5ej2AWdzhhBXAHkXM6BtRUwgrgFJk5vEPd2cUaHwrQte"
+    },
+    {
+      "step": "create operator.vetwork-hk1113.testnet (0.25 NEAR)",
+      "tx": "HW63LQU26rTDEPStk3W7oQvExXB6ABJ5cGBfxeLPoz94",
+      "url": "https://testnet.nearblocks.io/txns/HW63LQU26rTDEPStk3W7oQvExXB6ABJ5cGBfxeLPoz94"
+    },
+    {
+      "step": "deploy + init (owner, reviewer, operator)",
+      "tx": "7GRW2WzfKca29iQ3bDVQqmFXmVZJdo4MBA5rroQ6VXku",
+      "url": "https://testnet.nearblocks.io/txns/7GRW2WzfKca29iQ3bDVQqmFXmVZJdo4MBA5rroQ6VXku"
+    }
+  ]
+}
