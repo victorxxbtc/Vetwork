@@ -12,7 +12,7 @@ from typing import Any
 import os
 
 MAINNET_RPC = os.environ.get("NEAR_RPC_URL", "https://free.rpc.fastnear.com")
-TESTNET_RPC = "https://rpc.testnet.near.org"
+TESTNET_RPC = os.environ.get("TESTNET_RPC_URL", "https://test.rpc.fastnear.com")  # rpc.testnet.near.org is deprecated and rate-limited
 
 
 class RpcError(RuntimeError):

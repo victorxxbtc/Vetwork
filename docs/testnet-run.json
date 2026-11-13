@@ -138,6 +138,32 @@
       "step": "review submitted: FUND 88/100, 2 sections paid, memo hash recorded, rest refunded",
       "tx": "9BCxubQiqCqNrFPdmHQhjQaUnuEMWdmf9ZJeQSQ9PEtQ",
       "url": "https://testnet.nearblocks.io/txns/9BCxubQiqCqNrFPdmHQhjQaUnuEMWdmf9ZJeQSQ9PEtQ"
+    },
+    {
+      "step": "challenge history (ledger), 0.1 NEAR deposit",
+      "tx": "FfMhmmMfkwPyomi8cAbrGmewTUm3D25LiFPePC8LmZcE",
+      "url": "https://testnet.nearblocks.io/txns/FfMhmmMfkwPyomi8cAbrGmewTUm3D25LiFPePC8LmZcE"
+    },
+    {
+      "step": "reviewer re-checks the claim against its sources: it holds; challenge dismissed, deposit to the agent",
+      "tx": "9g7Zs8PCzUYv1AMoEkT3PvHZDQ9ETBY1upbmPqVdCYy",
+      "url": "https://testnet.nearblocks.io/txns/9g7Zs8PCzUYv1AMoEkT3PvHZDQ9ETBY1upbmPqVdCYy"
+    },
+    {
+      "step": "DRILL challenge budget (comparables), 0.1 NEAR deposit",
+      "tx": "KySVxZHtyBeTWRKbULd29dygDeNYFk1zHw8GLS7HTCn",
+      "url": "https://testnet.nearblocks.io/txns/KySVxZHtyBeTWRKbULd29dygDeNYFk1zHw8GLS7HTCn"
+    },
+    {
+      "step": "DRILL: reviewer upholds; bond slashed, half to challenger, half to the job poster",
+      "tx": "Eo2YXeVbmJGWc3rFsA2wmSNxTpg17xTGrmazfBYK3SrP",
+      "url": "https://testnet.nearblocks.io/txns/Eo2YXeVbmJGWc3rFsA2wmSNxTpg17xTGrmazfBYK3SrP"
+    },
+    {
+      "step": "pre-registration hash recorded (re-recorded after the git commit; the git commit is the earlier proof)",
+      "tx": "B4muZso5pRnfjAJrCTDrnTnYAKQ9kz3rWcNXSAadyfZj",
+      "url": "https://testnet.nearblocks.io/txns/B4muZso5pRnfjAJrCTDrnTnYAKQ9kz3rWcNXSAadyfZj",
+      "hash": "921b64c47ffa9898b2919c061cb1fab105fb292bc73788bf637becb805938a9a"
     }
   ],
   "job": {

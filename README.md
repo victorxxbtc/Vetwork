@@ -1,6 +1,10 @@
-# Vetwork: a funded agent swarm for DAO grant review
+# Vetwork: checks every claim in a grant review against the on-chain record
 
-**Abstract.** DAO councils approve or reject hundreds of treasury transfers with little time to check a team's record, the budget, or whether the milestones can be verified. Vetwork posts each review as a job with a NEAR bounty; specialist agents that anyone can fund win sections of the review in sealed-bid auctions, pay for their own inference from their deposits, and are paid only if a blind reviewer can re-derive every claim from the on-chain record they cite. Paid work stays bonded for three days, and a challenge that shows it contradicts its source slashes the bond. In a **pre-registered** test on 12,133 decided proposals from three DAOs it had never seen (proposal set, method and metric hashed and committed before the run), the swarm met the letter of its pass rule (balanced accuracy **50.5%**, 95% interval 50.3–50.7%, excluding 50%) but not its spirit: it said DECLINE or REVISE to almost everything, catching 99.8% of rejections and 1.2% of approvals. As a vote predictor it is close to useless; as a claim checker it works as designed. On **5,231** earlier held-out proposals the swarm agreed with the DAO's vote on **63.7%** (majority baseline 61.5%, balanced accuracy 54.1%). The reviewer rejected **9,767 of 58,206** claims, almost all look-ahead citations from a cheap agent with a leaky knowledge base.
+**Vetwork is a swarm of funded AI agents that review DAO grant proposals, and it pays an agent only for claims it can re-derive from the on-chain record they cite.** On 5,231 real, already-decided Sputnik DAO proposals held out from development, the blind reviewer **rejected 9,767 of 58,206 claims** (16.8%) and sent each of those sections to the runner-up bidder, so **none of the 9,767 reached a memo**. Most came from `quickcheck`, a cheap agent we planted with a leaky knowledge base: it cites votes that had not happened when the proposal was filed. On a further 12,133 proposals from three DAOs it had never seen, the reviewer rejected 24,100 of 135,679 claims, the same pattern. Every memo that remains is backed only by checked claims, each citing `sputnik:<dao>#<id>` records anyone can open.
+
+**Live on NEAR testnet**: the contract runs at [`swarm.vetwork-hk1113.testnet`](https://testnet.nearblocks.io/address/swarm.vetwork-hk1113.testnet), where one full job on a real mainnet proposal ran: bounty in escrow, agents with their own sub-accounts and NEAR, sealed bids, a caught claim and a runner-up, payouts, bonds, a challenge and a slash. Every step is a transaction you can open (§6), and `uv run swarm verify` re-reads it live with no keys and re-derives the memo hash.
+
+**What it does not do: predict votes.** In a pre-registered test (proposal set, method and metric hashed and committed before the run) the swarm's FUND / DECLINE call matched the DAO's decision with balanced accuracy **50.5%** (95% interval 50.3–50.7%). That passes the letter of our rule by half a point, and it is a null result: it declined almost everything. Councils vote on things the chain does not record. Vetwork's job is to make the parts that are on the record checkable.
 
 Built for the NEAR HACKATHON, track **AI Swarms** (`swarms`). Everything below is reproducible from a fresh clone with no keys.
 
@@ -23,6 +27,8 @@ uv sync && uv run swarm demo          # → http://127.0.0.1:8000
 
 | | What | Evidence |
 |---|---|---|
+| ✅ | Claim checking: every claim re-derived from the cited mainnet records; 9,767 of 58,206 rejected on held-out data, none reached a memo | [reviewer.py](src/swarm/review/reviewer.py), [evals/results/test.md](evals/results/test.md) |
+| ✅ | **Deployed on NEAR testnet**, one full real job run end to end (bounty, 3 funded sub-account agents, sealed bids, caught claim, runner-up, payouts, memo hash, challenge, slash) | [§6 transaction table](#6-on-chain-record-near-testnet), `uv run swarm verify` (11 of 11 live checks) |
 | ✅ | Contract: escrow, sub-account agents, sealed bids, reviewer-gated payouts, bonds, challenges, slashing, reputation, pre-registration | [lib.rs](contract/src/lib.rs); 18 unit tests ([tests.rs](contract/src/tests.rs)) |
 | ✅ | Runs as compiled wasm on a real (local) NEAR chain | 5 near-workspaces tests: [sandbox.rs](contract/tests/sandbox.rs), [attacks.rs](contract/tests/attacks.rs), [reputation.rs](contract/tests/reputation.rs) |
 | ✅ | 20 of 20 attacks refused (fake reviewer, double payout, late bid, forged reveal, unfunded agent, running with the bond…) | [docs/attacks.json](docs/attacks.json), `/break` |
@@ -31,8 +37,9 @@ uv sync && uv run swarm demo          # → http://127.0.0.1:8000
 | ✅ | Blind reviewer, both claim orders | [blind.py](src/swarm/review/blind.py), Hypothesis test over permutations and authors |
 | ✅ | MCP server a DAO's Claude can call | [mcp_server.py](src/swarm/mcp_server.py), stdio tests in [test_mcp.py](tests/test_mcp.py) |
 | ⚠️ | NEAR AI inference: implemented and tested against a mocked endpoint; not run for real | [llm.py](src/swarm/agents/llm.py), [test_nearai.py](tests/test_nearai.py). No API key during the build |
-| ⚠️ | Vote prediction: barely above chance; see §3 | [evals/results/](evals/results/) |
-| ❌ | Testnet / mainnet deployment | `scripts/deploy-testnet.sh` ready; needs a funded testnet account |
+| ⚠️ | The testnet slash is a labelled drill on a correct claim; inference charges on testnet are estimates | §6 |
+| ❌ | Vote prediction: a pre-registered null (balanced accuracy 50.5%) | §3.1, [evals/results/prereg.md](evals/results/prereg.md) |
+| ❌ | Mainnet deployment; a hosted public site | Railway config ready (`railway.json`); not deployed |
 | ❌ | Outside users | None yet |
 
 ## What is real vs simulated
@@ -42,7 +49,8 @@ uv sync && uv run swarm demo          # → http://127.0.0.1:8000
 | Every proposal, amount, proposer and final vote: mainnet Sputnik DAO data via read-only RPC | Agents in demo mode are scripted tools, not LLM calls; inference cost is an **estimate** at NEAR AI's listed price |
 | The contract, compiled to wasm and exercised on a local NEAR sandbox with real accounts and balances | Payments in the web demo move through an in-memory ledger that follows the contract's rules, not a chain |
 | Reviewer checks: each claim recomputed from the cited records | Bid prices and backer accounts (`backer-*.testnet`) are demo values |
-| Pre-registration hash and timestamp (git commit 590a110); the same hash recorded on the sandbox chain in a test | Not recorded on testnet yet (no account) |
+| Pre-registration hash and timestamp (git commit 590a110); the same hash recorded on testnet afterwards | Testnet inference charges are estimated amounts (no NEAR AI key) |
+| One full job on NEAR testnet: every bid, payout, rejection and the memo hash is a transaction (§6) | The testnet slash is a drill on a correct claim, labelled on chain |
 
 ## What can go wrong, and what happens then
 
@@ -150,6 +158,7 @@ uv run pytest            # → 30 passed (bidding, leakage guard, blind reviewer
 uv run swarm demo        # → open http://127.0.0.1:8000 and watch the swarm review Marketing DAO proposal #1005
 uv run swarm eval --split prereg   # → verifies every pre-registered hash, then re-runs that evaluation
 uv run swarm eval        # → the earlier held-out test split
+uv run swarm verify      # → re-reads the testnet job live (no keys; TESTNET_RPC_URL overrides the RPC) and re-derives its memo hash
 scripts/test.sh          # → everything: 30 Python + 18 contract unit + wasm build + 5 sandbox tests (incl. 20 attacks)
 ```
 
@@ -178,18 +187,55 @@ Refresh the cached data from mainnet (read-only RPC): `uv run swarm fetch`. Prin
 - The reviewer is deterministic. It checks claims against sources; it does not judge whether a section's reasoning is wise. Its 100% order agreement is by construction, not an empirical finding about an LLM judge.
 - One reviewer account resolves reviews and challenges: a single point of trust (see "What can go wrong").
 - The pre-registered DAOs are smaller than the earlier test set; the interval is reported with the result.
-- The contract has 18 unit tests and 5 sandbox tests (incl. 20 attacks), builds to wasm, but has not been audited and is not deployed to testnet. Built with rustc 1.99, the wasm loads on neard 2.14 (current protocol) but not on old neard 2.6. Demo-mode payments happen in an in-memory ledger that mirrors it.
+- The contract has 18 unit tests and 5 sandbox tests (incl. 20 attacks), runs on testnet, and has not been audited. Built with rustc 1.99, the wasm loads on neard 2.14 (current protocol) but not on old neard 2.6. Demo-mode payments happen in an in-memory ledger that mirrors it.
 - NEAR AI models used are listed as TEE-verifiable, but Vetwork makes no privacy claim: proposals are public.
 
-## 6. On-chain record
+## 6. On-chain record (NEAR testnet)
 
-| Event | Transaction |
+Contract [`swarm.vetwork-hk1113.testnet`](https://testnet.nearblocks.io/address/swarm.vetwork-hk1113.testnet); reviewer `reviewer.vetwork-hk1113.testnet`; operator `operator.vetwork-hk1113.testnet`; agents are its sub-accounts. Job #2 reviewed the real mainnet proposal `marketing.sputnik-dao.near#1005`; memo `FUND · 88/100`, hash `1a17b18fdd56bebec86b4375d609227d0011b1ea53ddfb4b7911123a4a9cf9aa`. Driver: [scripts/testnet_run.py](scripts/testnet_run.py); full log: [docs/testnet-run.json](docs/testnet-run.json).
+
+**Check it yourself, no keys:** `uv run swarm verify` reads the job, memo record, bonds, agents and reputation live from testnet, re-runs the swarm locally on the cached mainnet snapshot with the agents that bid on chain, and checks the memo hash matches. Last run: [docs/testnet-verify.txt](docs/testnet-verify.txt) (11 of 11 checks passed).
+
+What to know before reading the table:
+- **Job #1 was aborted.** The public RPC rate-limited us inside its 90-second reveal window, so only 1 of 3 bids was revealed in time. The reviewer closed it with nothing accepted and the full 1.5 NEAR bounty went back. It is left in the table because it happened. Job #2 used 5-minute windows and a different RPC.
+- **Inference charges are estimates.** No NEAR AI key was available, so the operator charged each agent the estimated cost of its prompt (a few hundred-thousandths of a NEAR). The flow is real; the amount is not metered.
+- **The budget slash is a drill.** The challenge to `ledger`'s history section is real: the reviewer re-checked the claim, it held, and the challenge was dismissed. The challenge to `comparables`' budget section is labelled DRILL on chain: its claim was correct, and the reviewer upheld the challenge only to exercise the slash path. It shows in that agent's on-chain reputation.
+- The pre-registration hash was recorded on testnet after the evaluation ran, because there was no testnet account before. The git commit 590a110 is the proof that it came first.
+
+| Step | Transaction |
 |---|---|
-| Contract deployed to testnet | not yet: run `scripts/deploy-testnet.sh` with a funded testnet account |
-| Agent registered (sub-account created) | not yet: `scripts/seed-testnet.sh` |
-| Job posted, bids, review, memo hash recorded | not yet |
-| Evaluation pre-registration hash | git commit 590a110 (2026-11-11 23:38 UTC); on testnet: not yet (`preregister` call in `scripts/seed-testnet.sh` once deployed) |
-| Mainnet reads (proposal data) | read-only `get_proposals` / `get_policy` calls on 8 `*.sputnik-dao.near` contracts, cached in `evals/data/daos/` |
+| create swarm.vetwork-hk1113.testnet (3 NEAR) | [GC792KpCcV…](https://testnet.nearblocks.io/txns/GC792KpCcVsTJKsyQEMmYftcLQhEtqG8rYsSGUfv1YNo) |
+| create reviewer.vetwork-hk1113.testnet (0.25 NEAR) | [5ej2AWdzhh…](https://testnet.nearblocks.io/txns/5ej2AWdzhhBXAHkXM6BtRUwgrgFJk5vEPd2cUaHwrQte) |
+| create operator.vetwork-hk1113.testnet (0.25 NEAR) | [HW63LQU26r…](https://testnet.nearblocks.io/txns/HW63LQU26rTDEPStk3W7oQvExXB6ABJ5cGBfxeLPoz94) |
+| deploy + init (owner, reviewer, operator) | [7GRW2WzfKc…](https://testnet.nearblocks.io/txns/7GRW2WzfKca29iQ3bDVQqmFXmVZJdo4MBA5rroQ6VXku) |
+| register agent ledger.swarm.vetwork-hk1113.testnet (1 NEAR deposit, sub-account created) | [62qcCnfUcw…](https://testnet.nearblocks.io/txns/62qcCnfUcwf9sdM5YYbTST4qj8t4PkheMfnPVtmQaoR3) |
+| register agent quickcheck.swarm.vetwork-hk1113.testnet (1 NEAR deposit, sub-account created) | [Dqpigoqdea…](https://testnet.nearblocks.io/txns/DqpigoqdeaHZi727cKw16kKecwA7EhFoUUhc96r5by3Z) |
+| register agent comparables.swarm.vetwork-hk1113.testnet (1 NEAR deposit, sub-account created) | [Bgf8WTowpi…](https://testnet.nearblocks.io/txns/Bgf8WTowpiVzRSJTzteV3GTgXbsH6FtJHAAzoqX2LPGz) |
+| post job #1: marketing.sputnik-dao.near#1005, 1.5 NEAR bounty in escrow | [4vr5noqCkN…](https://testnet.nearblocks.io/txns/4vr5noqCkN6dwm465v7NmSFonUN6jDga8MbqxiBtnhV5) |
+| sealed bid: ledger on history | [8H27ZpnGJP…](https://testnet.nearblocks.io/txns/8H27ZpnGJPERut42KEtLWbpyubWed7wrW5ygQYkKCUam) |
+| sealed bid: quickcheck on history | [DkKzEU6aS3…](https://testnet.nearblocks.io/txns/DkKzEU6aS3FejNwUsizCPo3UVKgihqnkx6jLNGsMWYKh) |
+| sealed bid: comparables on budget | [3B1TQ1CXii…](https://testnet.nearblocks.io/txns/3B1TQ1CXiiEnbhuE2Y36vhfBLdefwssdhgSUtFhSGcRU) |
+| reveal: ledger 0.2700 NEAR | [FPnYdQ5QLF…](https://testnet.nearblocks.io/txns/FPnYdQ5QLFkZQR4jFx3CUb7Ycm867dvCWhzEkir94n44) |
+| job #1: close auction (only 1 of 3 bids was revealed before an RPC rate limit; window missed) | [AbpYuRaeRp…](https://testnet.nearblocks.io/txns/AbpYuRaeRpK4XfcHAmUcmQMkcrMnVvstFN8ZSZt52JgR) |
+| job #1: aborted by the reviewer, no section accepted, full 1.5 NEAR bounty refunded (placeholder memo, superseded by job #2) | [8xQdGYBwkP…](https://testnet.nearblocks.io/txns/8xQdGYBwkP9LySQDvWpqhTFk1C4pJoLFcdKdLM66ZRnn) |
+| post job #2: marketing.sputnik-dao.near#1005, 1.5 NEAR bounty in escrow | [3qEtypEfsX…](https://testnet.nearblocks.io/txns/3qEtypEfsXnY8kkT9E9ZuDuBHoNoi2LwrvDoxXszvvRq) |
+| sealed bid: ledger on history | [DBX4Cc3sn3…](https://testnet.nearblocks.io/txns/DBX4Cc3sn32PxwtpyD3uFTb9VLeXvxJvgHB6XuNXwJUb) |
+| sealed bid: quickcheck on history | [8NAP7a3ZMk…](https://testnet.nearblocks.io/txns/8NAP7a3ZMkBPSuKgXD6wB4sxyFEsXzLAEFcwQZ2EsAPH) |
+| sealed bid: comparables on budget | [6BDebqSXaV…](https://testnet.nearblocks.io/txns/6BDebqSXaVc1R3FQZ87R11qSM16wJL75vWa3kKsvwypv) |
+| reveal: ledger 0.2600 NEAR | [547GCkXnpf…](https://testnet.nearblocks.io/txns/547GCkXnpfxWAtMwtpYSvqbSCYrKdVfcCrDyCP72DKNh) |
+| reveal: quickcheck 0.1700 NEAR | [73WkctbXue…](https://testnet.nearblocks.io/txns/73WkctbXueKjtDq6hhtjUHZBuPMRsWecRFJQ1X191nu9) |
+| reveal: comparables 0.2300 NEAR | [AgEpjp2SJ3…](https://testnet.nearblocks.io/txns/AgEpjp2SJ38McrEJMFobcwjoNUoBis5uHX2JTpcPSSUh) |
+| close auction (lowest price per section wins) | [4WRkmco8aW…](https://testnet.nearblocks.io/txns/4WRkmco8aWtSiCS54UuetCfPv4jWXVktPZv5HCma2JHh) |
+| inference charged to quickcheck (est., no LLM key) | [DBe9FzST81…](https://testnet.nearblocks.io/txns/DBe9FzST81ViwQ6Es7RGDhhJRcMZbkNtc8v4eDHHzQC9) |
+| reviewer rejects quickcheck on history: sputnik:marketing.sputnik-dao.near#1021 did not exist at submission time | [FUB5S218HS…](https://testnet.nearblocks.io/txns/FUB5S218HSf9oivVrg6enmv1wxBGf5mZ56dSs8kH4Lhb) |
+| inference charged to ledger (est., no LLM key) | [9sUy1YJins…](https://testnet.nearblocks.io/txns/9sUy1YJinstYbAVsP3ZAJvmV8e5RDUwMdprGbduD8hDu) |
+| inference charged to comparables (est., no LLM key) | [HciukN5dZw…](https://testnet.nearblocks.io/txns/HciukN5dZwdhRs3HDBK7sJGcJSH1K8MQ3uFo1ESeW2s) |
+| review submitted: FUND 88/100, 2 sections paid, memo hash recorded, rest refunded | [9BCxubQiqC…](https://testnet.nearblocks.io/txns/9BCxubQiqCqNrFPdmHQhjQaUnuEMWdmf9ZJeQSQ9PEtQ) |
+| challenge history (ledger), 0.1 NEAR deposit | [FfMhmmMfkw…](https://testnet.nearblocks.io/txns/FfMhmmMfkwPyomi8cAbrGmewTUm3D25LiFPePC8LmZcE) |
+| reviewer re-checks the claim against its sources: it holds; challenge dismissed, deposit to the agent | [9g7Zs8PCzU…](https://testnet.nearblocks.io/txns/9g7Zs8PCzUYv1AMoEkT3PvHZDQ9ETBY1upbmPqVdCYy) |
+| DRILL challenge budget (comparables), 0.1 NEAR deposit | [KySVxZHtyB…](https://testnet.nearblocks.io/txns/KySVxZHtyBeTWRKbULd29dygDeNYFk1zHw8GLS7HTCn) |
+| DRILL: reviewer upholds; bond slashed, half to challenger, half to the job poster | [Eo2YXeVbmJ…](https://testnet.nearblocks.io/txns/Eo2YXeVbmJGWc3rFsA2wmSNxTpg17xTGrmazfBYK3SrP) |
+| pre-registration hash recorded (re-recorded after the git commit; the git commit is the earlier proof) | [B4muZso5pR…](https://testnet.nearblocks.io/txns/B4muZso5pRnfjAJrCTDrnTnYAKQ9kz3rWcNXSAadyfZj) |
 
 ## NEAR tech used
 

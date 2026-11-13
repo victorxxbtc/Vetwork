@@ -1,0 +1,13 @@
+✓ job #2 exists on swarm.vetwork-hk1113.testnet
+✓ job status is Reviewed
+✓ escrow is empty: winners paid, the rest refunded
+✓ memo record for marketing.sputnik-dao.near#1005: FUND 88/100, hash 1a17b18fdd56bebe…
+✓ history: paid ledger 0.26 NEAR, bonded until 1794826286
+✓ history: reviewer rejected quickcheck, runner-up took over
+✓ budget: paid comparables 0.23 NEAR, bonded until 1794826286 (settled)
+✓ comparables.swarm.vetwork-hk1113.testnet: sub-account exists; earned 0.23, slashed 0.23, reputation 33.3% (1 accepted / 0 rejected / 1 slashed)
+✓ ledger.swarm.vetwork-hk1113.testnet: sub-account exists; earned 0.26, slashed 0.00, reputation 66.7% (1 accepted / 0 rejected / 0 slashed)
+✓ quickcheck.swarm.vetwork-hk1113.testnet: sub-account exists; earned 0.00, slashed 0.00, reputation 33.3% (0 accepted / 1 rejected / 0 slashed)
+✓ re-ran the swarm locally on the cached mainnet snapshot: memo hash 1a17b18fdd56bebe… matches the chain
+
+11 of 11 checks passed, read live from testnet (no keys).

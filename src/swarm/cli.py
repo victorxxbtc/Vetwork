@@ -45,6 +45,7 @@ def main(argv: list[str] | None = None) -> None:
     pr = sub.add_parser("prereg", help="pin DAOs, method and metric; write evals/preregistration.json and print its hash")
     pr.add_argument("daos", nargs="+")
     pr.add_argument("--note", default="")
+    sub.add_parser("verify", help="re-read the testnet job live (no keys) and re-derive its memo hash")
     rp = sub.add_parser("reputation", help="recompute agent reputation from a contract EVENT_JSON log")
     rp.add_argument("events", nargs="?", default="docs/sandbox-events.jsonl")
     f = sub.add_parser("fetch", help="re-download proposals from mainnet RPC (read-only)")
@@ -70,6 +71,10 @@ def main(argv: list[str] | None = None) -> None:
 
         doc = write(a.daos, a.note)
         print(f"pre-registered {len(a.daos)} DAOs at {doc['registered_at']}\nhash {doc['hash']}\n-> {PREREG}")
+    elif a.cmd == "verify":
+        from .chain.verify import main as verify_main
+
+        sys.exit(verify_main())
     elif a.cmd == "reputation":
         from pathlib import Path
 
