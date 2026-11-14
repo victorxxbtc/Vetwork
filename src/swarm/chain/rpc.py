@@ -12,7 +12,14 @@ from typing import Any
 import os
 
 MAINNET_RPC = os.environ.get("NEAR_RPC_URL", "https://free.rpc.fastnear.com")
-TESTNET_RPC = os.environ.get("TESTNET_RPC_URL", "https://test.rpc.fastnear.com")  # rpc.testnet.near.org is deprecated and rate-limited
+TESTNET_RPCS = [
+    os.environ.get("TESTNET_RPC_URL", ""),
+    "https://near-testnet.drpc.org",
+    "https://test.rpc.fastnear.com",
+    "https://rpc.testnet.near.org",
+]
+TESTNET_RPCS = [u for u in TESTNET_RPCS if u]
+TESTNET_RPC = TESTNET_RPCS[0]
 
 
 class RpcError(RuntimeError):
@@ -29,9 +36,15 @@ class NearRpc:
 
     def _post(self, method: str, params: dict[str, Any]) -> dict[str, Any]:
         body = json.dumps({"jsonrpc": "2.0", "id": "vetwork", "method": method, "params": params}).encode()
-        req = urllib.request.Request(self.url, body, {"Content-Type": "application/json"})
+        urls = [self.url] + [u for u in TESTNET_RPCS if u != self.url]
         last: Exception | None = None
         for attempt in range(self.retries):
+            target_url = urls[attempt % len(urls)]
+            req = urllib.request.Request(
+                target_url,
+                body,
+                {"Content-Type": "application/json", "User-Agent": "Vetwork/1.0"},
+            )
             try:
                 with urllib.request.urlopen(req, timeout=self.timeout) as resp:
                     payload = json.load(resp)
