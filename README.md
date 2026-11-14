@@ -1,5 +1,7 @@
 # Vetwork: checks every claim in a grant review against the on-chain record
 
+**Live demo: [vetwork-three.vercel.app](https://vetwork-three.vercel.app)** (demo mode, no wallet or keys needed) · Source: [github.com/victorxxbtc/Vetwork](https://github.com/victorxxbtc/Vetwork)
+
 **Vetwork is a swarm of funded AI agents that review DAO grant proposals, and it pays an agent only for claims it can re-derive from the on-chain record they cite.** On 5,231 real, already-decided Sputnik DAO proposals held out from development, the blind reviewer **rejected 9,767 of 58,206 claims** (16.8%) and sent each of those sections to the runner-up bidder, so **none of the 9,767 reached a memo**. Most came from `quickcheck`, a cheap agent we planted with a leaky knowledge base: it cites votes that had not happened when the proposal was filed. On a further 12,133 proposals from three DAOs it had never seen, the reviewer rejected 24,100 of 135,679 claims, the same pattern. Every memo that remains is backed only by checked claims, each citing `sputnik:<dao>#<id>` records anyone can open.
 
 **Live on NEAR testnet**: the contract runs at [`swarm.vetwork-hk1113.testnet`](https://testnet.nearblocks.io/address/swarm.vetwork-hk1113.testnet), where one full job on a real mainnet proposal ran: bounty in escrow, agents with their own sub-accounts and NEAR, sealed bids, a caught claim and a runner-up, payouts, bonds, a challenge and a slash. Every step is a transaction you can open (§6), and `uv run swarm verify` re-reads it live with no keys and re-derives the memo hash.
@@ -13,7 +15,7 @@ Built for the NEAR HACKATHON, track **AI Swarms** (`swarms`). Everything below i
 ## Try it in 60 seconds
 
 ```
-git clone <this repo> vetwork && cd vetwork
+git clone https://github.com/victorxxbtc/Vetwork.git vetwork && cd vetwork
 uv sync && uv run swarm demo          # → http://127.0.0.1:8000
 ```
 
@@ -39,7 +41,8 @@ uv sync && uv run swarm demo          # → http://127.0.0.1:8000
 | ⚠️ | NEAR AI inference: implemented and tested against a mocked endpoint; not run for real | [llm.py](src/swarm/agents/llm.py), [test_nearai.py](tests/test_nearai.py). No API key during the build |
 | ⚠️ | The testnet slash is a labelled drill on a correct claim; inference charges on testnet are estimates | §6 |
 | ❌ | Vote prediction: a pre-registered null (balanced accuracy 50.5%) | §3.1, [evals/results/prereg.md](evals/results/prereg.md) |
-| ❌ | Mainnet deployment; a hosted public site | Railway config ready (`railway.json`); not deployed |
+| ✅ | Hosted demo site (demo mode: cached mainnet data, in-memory ledger, console replays the run) | [vetwork-three.vercel.app](https://vetwork-three.vercel.app), [Deploy](#deploy) |
+| ❌ | Mainnet deployment of the contract | Testnet only; Railway config also ready (`railway.json`) |
 | ❌ | Outside users | None yet |
 
 ## What is real vs simulated
@@ -150,16 +153,16 @@ What this says, plainly: the scripted swarm is **not** a better vote predictor t
 
 ## 4. Reproduce
 
-Requires Python 3.13 and [uv](https://docs.astral.sh/uv/). Rust only for the contract.
+Requires Python 3.13 and [uv](https://docs.astral.sh/uv/). Rust only for the contract: a first contract build compiles near-sdk and near-workspaces from scratch and takes about 8 minutes per command (`cargo test --lib`, then the wasm build). The first `cargo test` of any kind also runs near-workspaces' build script, which downloads a neard sandbox binary; on a slow connection set `NEAR_SANDBOX_BIN_PATH` to a local neard to skip it. The Python steps take about 2 minutes.
 
 ```
 uv sync
-uv run pytest            # → 30 passed (bidding, leakage guard, blind reviewer, ledger, pre-registration, reputation, MCP over stdio, web)
+uv run pytest            # → 35 passed (bidding, leakage guard, blind reviewer, ledger, pre-registration, reputation, MCP over stdio, web)
 uv run swarm demo        # → open http://127.0.0.1:8000 and watch the swarm review Marketing DAO proposal #1005
 uv run swarm eval --split prereg   # → verifies every pre-registered hash, then re-runs that evaluation
 uv run swarm eval        # → the earlier held-out test split
 uv run swarm verify      # → re-reads the testnet job live (no keys; TESTNET_RPC_URL overrides the RPC) and re-derives its memo hash
-scripts/test.sh          # → everything: 30 Python + 18 contract unit + wasm build + 5 sandbox tests (incl. 20 attacks)
+scripts/test.sh          # → everything: 35 Python + 18 contract unit + wasm build + 5 sandbox tests (incl. 20 attacks)
 ```
 
 Contract only: `cd contract && cargo test --lib` (18 unit tests), `cargo near build non-reproducible-wasm` (→ `target/near/vetwork_swarm.wasm`, 224 KB), `cargo test --test sandbox` (3 end-to-end tests on a local neard 2.14 sandbox: real wasm, real accounts and balances; the full job lifecycle with escrow, sub-account creation, late-commit and bad-salt rejection, runner-up reassignment, payout into the agent's balance and refund to the poster; a second backer withdrawing pro-rata in real NEAR; the evaluation's pre-registration hash recorded on chain), `cargo test --test attacks` (20 attacks, prints "20 of 20 refused"), `cargo test --test reputation` (rebuild from logs = on-chain view). near-workspaces downloads neard on first run; set `NEAR_SANDBOX_BIN_PATH` to use a local binary.
@@ -184,7 +187,7 @@ Refresh the cached data from mainnet (read-only RPC): `uv run swarm fetch`. Prin
 
 **Vercel** (Hobby plan is enough): the same FastAPI app runs as one Python function.
 
-1. Import the repository in Vercel. Framework preset: **Other**. Leave build and output settings empty; `vercel.json` routes every path to `api/index.py`, and Vercel installs dependencies from `pyproject.toml` + `uv.lock`.
+1. Import the repository in Vercel. Vercel pre-selects the framework preset **FastAPI**; switch it to **Other** before deploying (the live site uses **Other**; this repo's `api/index.py` + `vercel.json` layout is built for it). Leave build and output settings empty; `vercel.json` routes every path to `api/index.py`, and Vercel installs dependencies from `pyproject.toml` + `uv.lock`.
 2. Environment variables: **none are required**; with none set the site runs in its labelled demo mode. Optional: `NEAR_AI_API_KEY` (agents call NEAR AI instead of scripted tools), `SWARM_CONTRACT_ID` (enables the wallet buttons, e.g. `swarm.vetwork-hk1113.testnet`), `TESTNET_RPC_URL` (RPC for testnet reads; default `https://test.rpc.fastnear.com`), `SWARM_TRANSPORT` (`sse` or `replay`, to override the automatic choice).
 3. Deploy. Check `/healthz`, `/`, `/memo/marketing.sputnik-dao.near/1005`, `/eval`, `/break`.
 
@@ -267,13 +270,13 @@ What to know before reading the table:
 
 ## Layout and stack
 
-`src/swarm/{agents,bidding,review}/`, `src/swarm/{engine,context,ledger,evaluate}.py`, `contract/`, `templates/` (Jinja2), `static/` (D3 v7 + SSE, no bundler), `evals/` (config, cached mainnet data, results). FastAPI on Python 3.13 with uv, pytest + Hypothesis, Railway (`railway.json`, `Procfile`).
+`src/swarm/{agents,bidding,review}/`, `src/swarm/{engine,context,ledger,evaluate}.py`, `contract/`, `templates/` (Jinja2), `static/` (D3 v7 + SSE, no bundler), `evals/` (config, cached mainnet data, results). FastAPI on Python 3.13 with uv, pytest + Hypothesis, Vercel (`vercel.json`, `api/index.py`) and Railway (`railway.json`, `Procfile`).
 
 ## Built before vs during the window (Nov 1–14)
 
 | Before Nov 1 | During Nov 1–14 |
 |---|---|
-| Nothing. No code, data or design existed before the window. | All of it: first commit 2026-11-10 08:08 CET ([git log](https://git-scm.com/docs/git-log): `git log --reverse`). Mainnet data fetched 2026-11-10 to 2026-11-12. |
+| Nothing. No code, data or design existed before the window. | All of it: first commit 2026-11-10 18:45 CET ([git log](https://git-scm.com/docs/git-log): `git log --reverse`). Mainnet data fetched 2026-11-10 to 2026-11-12. |
 
 Libraries used as-is: FastAPI, Jinja2, httpx, uvicorn, D3, near-sdk, near-workspaces, near-connect, pytest, Hypothesis.
 
