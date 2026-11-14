@@ -178,6 +178,25 @@ Refresh the cached data from mainnet (read-only RPC): `uv run swarm fetch`. Prin
 
 **Modes.** With no `.env` the app runs in **demo mode**: scripted agents, cached mainnet proposals, in-memory ledger that follows the contract's rules, estimated inference. Set `NEAR_AI_API_KEY` to make every agent call NEAR AI Cloud (`https://cloud-api.near.ai/v1`, OpenAI-compatible) for its summary, meter real token usage, and enable the `milestone-llm` agent whose quotes the reviewer checks verbatim. Set `SWARM_CONTRACT_ID` after `scripts/deploy-testnet.sh` to enable the HOT near-connect wallet buttons. See `.env.example`.
 
+## Deploy
+
+**Railway** (unchanged): `railway.json` + `Procfile` run `uvicorn swarm.web.app:app` with a `/healthz` check. The console streams the run over SSE.
+
+**Vercel** (Hobby plan is enough): the same FastAPI app runs as one Python function.
+
+1. Import the repository in Vercel. Framework preset: **Other**. Leave build and output settings empty; `vercel.json` routes every path to `api/index.py`, and Vercel installs dependencies from `pyproject.toml` + `uv.lock`.
+2. Environment variables: **none are required**; with none set the site runs in its labelled demo mode. Optional: `NEAR_AI_API_KEY` (agents call NEAR AI instead of scripted tools), `SWARM_CONTRACT_ID` (enables the wallet buttons, e.g. `swarm.vetwork-hk1113.testnet`), `TESTNET_RPC_URL` (RPC for testnet reads; default `https://test.rpc.fastnear.com`), `SWARM_TRANSPORT` (`sse` or `replay`, to override the automatic choice).
+3. Deploy. Check `/healthz`, `/`, `/memo/marketing.sputnik-dao.near/1005`, `/eval`, `/break`.
+
+What works on Vercel: every page (console, memo, eval, break, agents), the JSON API, the cached mainnet data and results bundled with the function.
+What is different:
+- **The live console replays instead of streaming.** A serverless function cuts long responses, so on Vercel (`VERCEL=1`) the console fetches the whole run once from `/api/events` and plays it in the browser at the stream's pace. Same events, same order. A test checks that the replay equals the stream. On Railway the console streams, and switches to the replay itself if a stream drops.
+- **Agents added on `/agents` do not persist.** They live in the function's memory and disappear when the instance is recycled. Railway keeps them until restart. Neither uses a database.
+- **No evaluations or testnet transactions run on Vercel.** `swarm eval`, `swarm verify` and `scripts/testnet_run.py` are CLI tools; the site shows their committed results.
+- The first request after idle pays a cold start (the run is computed and cached per instance).
+
+Local proof: `vercel build` (CLI 65.9, no login) completes and writes `.vercel/output/` (Build Output API v3): one `python3.13` function `functions/api/index.func` with 966 vendored dependency files and 96 app files (source, templates, static, data, results). Served from those 96 files alone with `VERCEL=1`, `/healthz`, `/`, the memo, `/eval`, `/break`, `/agents`, `/api/events` and `/api/memo` all return 200 and the console switches to replay. `vercel.json` excludes `contract/` (the Rust build output alone is over 2 GB) and test caches from the function. `.vercel/` is git-ignored.
+
 ## 5. Limitations
 
 - The evaluation uses the scripted backend. The NEAR AI path is implemented and unit-tested against a mocked endpoint but has not been evaluated (no API key during the build).

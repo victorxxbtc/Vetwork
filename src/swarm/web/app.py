@@ -47,6 +47,9 @@ templates.env.globals.update(
     contract_id=os.environ.get("SWARM_CONTRACT_ID", ""),
     network=os.environ.get("NEAR_NETWORK", "testnet"),
     mode=lambda: "live NEAR AI" if client_from_env() else "demo",
+    # "sse" streams /events; "replay" fetches /api/events once and paces it in the browser.
+    # Serverless hosts cut long responses, so Vercel (which sets VERCEL=1) gets the replay.
+    transport=os.environ.get("SWARM_TRANSPORT") or ("replay" if os.environ.get("VERCEL") else "sse"),
     # cache-buster for /static: changes whenever a static file changes
     asset_v=hashlib.sha256(b"".join(f.read_bytes() for f in sorted((ROOT / "static").iterdir()) if f.is_file())).hexdigest()[:10],
 )
@@ -111,6 +114,14 @@ async def events(dao: str = DEFAULT_DAO, id: int = DEFAULT_PROPOSAL, speed: floa
         yield f"event: done\ndata: {json.dumps({'memo_url': f'/memo/{dao}/{id}'})}\n\n"
 
     return StreamingResponse(gen(), media_type="text/event-stream", headers={"Cache-Control": "no-cache"})
+
+
+@app.get("/api/events")
+def events_json(dao: str = DEFAULT_DAO, id: int = DEFAULT_PROPOSAL):
+    """The same events as /events in one short response, for hosts that cut long streams (Vercel).
+    The console replays them client-side with the same pacing."""
+    res = run(dao, id)
+    return JSONResponse({"events": res.events, "memo_url": f"/memo/{dao}/{id}"})
 
 
 @app.get("/memo/{dao}/{pid}", response_class=HTMLResponse)

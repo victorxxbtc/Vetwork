@@ -100,10 +100,10 @@
   }
 
   log.innerHTML = "";
-  const src = new EventSource(`/events?dao=${encodeURIComponent(A.dao)}&id=${A.id}`);
+  let seen = 0;
   let ended = false;
-  src.addEventListener("swarm", (m) => {
-    const e = JSON.parse(m.data);
+  function handle(e) {
+    seen += 1;
     switch (e.type) {
       case "job_posted":
         status.textContent = `Job posted: ${near(e.bounty)} NEAR bounty in escrow for ${e.amount} request.`;
@@ -161,13 +161,42 @@
         document.getElementById("memo-cta").hidden = false;
         break;
     }
-  });
-  src.addEventListener("done", () => { ended = true; src.close(); });
-  src.onerror = () => {
-    if (ended) return;
-    src.close();
-    status.classList.add("err");
-    status.textContent = "The event stream dropped. Reload to replay, or open the memo directly.";
-    document.getElementById("memo-cta").hidden = false;
-  };
+  }
+  function finish() {
+    ended = true;
+  }
+  // Replay: fetch the whole run once (/api/events) and pace it here with the stream's timing.
+  // Used where long responses are cut (serverless hosts), and when a stream drops mid-run.
+  const pace = (t) => (reduce ? 0 : { bid_committed: 120, bid_revealed: 120 }[t] || 450);
+  function replay(from) {
+    fetch(`/api/events?dao=${encodeURIComponent(A.dao)}&id=${A.id}`)
+      .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then((d) => {
+        const rest = d.events.slice(from);
+        let i = 0;
+        (function next() {
+          if (i >= rest.length) return finish();
+          const e = rest[i++];
+          handle(e);
+          setTimeout(next, pace(e.type));
+        })();
+      })
+      .catch(() => {
+        status.classList.add("err");
+        status.textContent = "Could not load the run. Reload to try again, or open the memo directly.";
+        document.getElementById("memo-cta").hidden = false;
+      });
+  }
+  if (A.transport === "replay" || !window.EventSource) {
+    replay(0);
+  } else {
+    const src = new EventSource(`/events?dao=${encodeURIComponent(A.dao)}&id=${A.id}`);
+    src.addEventListener("swarm", (m) => handle(JSON.parse(m.data)));
+    src.addEventListener("done", () => { finish(); src.close(); });
+    src.onerror = () => {
+      if (ended) return;
+      src.close();
+      replay(seen); // pick up where the stream stopped
+    };
+  }
 })();

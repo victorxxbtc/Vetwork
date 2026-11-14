@@ -1,0 +1,16 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 60,
+      "includeFiles": "{src/**,templates/**,static/**,evals/config.json,evals/preregistration.json,evals/data/**,evals/results/*.json,docs/attacks.json,docs/sandbox-events.jsonl,docs/sandbox-reputation.json,docs/testnet-run.json}",
+      "excludeFiles": "{contract/**,.venv/**,.vercel/**,tests/**,scripts/**,docs/screenshots/**,docs/*.mp4,docs/*.srt,evals/results/*-rows.jsonl,**/__pycache__/**,.pytest_cache/**,.hypothesis/**}"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index"
+    }
+  ]
+}
